@@ -1,0 +1,42 @@
+@import "tailwindcss";
+
+@theme {
+  /* --font-sans: "Hind Siliguri", sans-serif; */
+  --color-brand-teal: #0d4b63;
+  --color-brand-teal-dark: #083344;
+  --color-brand-teal-light: #16607e;
+  --color-brand-green: #22c55e;
+  --color-brand-green-dark: #16a34a;
+  --color-brand-green-light: #4ade80;
+  --color-brand-slate: #0f172a;
+  --color-brand-slate-card: #1e293b;
+  --color-brand-slate-border: #334155;
+}
+
+/* @layer base {
+  html {
+    scroll-behavior: smooth;
+  }
+  body {
+    font-family: "Hind Siliguri", sans-serif;
+  }
+} */
+@layer base {
+  html {
+    scroll-behavior: smooth;
+  }
+  body,
+  * {
+    font-family: "Hind Siliguri", sans-serif !important;
+  }
+}
+
+.custom-shadow {
+  box-shadow: 0 10px 30px -5px rgba(13, 75, 99, 0.25);
+}
+
+.green-glow {
+  box-shadow: 0 0 25px -3px rgba(34, 197, 94, 0.35);
+}
+
+@custom-variant dark (&:where(.dark, .dark *));
