@@ -1,7 +1,6 @@
 @import "tailwindcss";
 
 @theme {
-  /* --font-sans: "Hind Siliguri", sans-serif; */
   --color-brand-teal: #0d4b63;
   --color-brand-teal-dark: #083344;
   --color-brand-teal-light: #16607e;
@@ -13,21 +12,12 @@
   --color-brand-slate-border: #334155;
 }
 
-/* @layer base {
+@layer base {
   html {
     scroll-behavior: smooth;
   }
   body {
     font-family: "Hind Siliguri", sans-serif;
-  }
-} */
-@layer base {
-  html {
-    scroll-behavior: smooth;
-  }
-  body,
-  * {
-    font-family: "Hind Siliguri", sans-serif !important;
   }
 }
 

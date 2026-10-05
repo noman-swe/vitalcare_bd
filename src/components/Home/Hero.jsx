@@ -43,7 +43,7 @@ export const Hero = () => {
   return (
     <section
       id="hero"
-      className="relative overflow-hidden pt-12 pb-20 lg:pt-20 lg:pb-28"
+      className="relative overflow-hidden pt-12 pb-20 lg:pt-20 lg:pb-28 border-y border-slate-200 dark:border-brand-slate-border"
     >
       {/* Decorative Glow Background Effects */}
       <div className="absolute top-1/4 left-1/2 -translate-x-1/2 -translate-y-1/2 w-125 h-125 bg-brand-green/10 dark:bg-brand-green/5 rounded-full blur-3xl pointer-events-none -z-10" />

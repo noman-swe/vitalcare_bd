@@ -1,24 +1,49 @@
+import { useState, useEffect } from "react";
 import { useTheme } from "../../context/ThemeContext";
 // import { useCart } from "../../context/CartContext";
-import {
-  SpaIcon,
-  // ShoppingCartIcon,
-  PhoneIcon,
-  LockIcon,
-} from "../../icons/Icons";
-import { IconMoon, IconSun } from "@tabler/icons-react";
+import { SpaIcon, LockIcon } from "../../icons/Icons";
+import { IconMoon, IconPhone, IconSun } from "@tabler/icons-react";
 
 export const Header = () => {
   const { theme, toggleTheme } = useTheme();
   // const { totalItemsCount, setIsCartOpen } = useCart();
 
+  // কোন সেকশনটি বর্তমানে একটিভ আছে তা ট্র্যাক করার জন্য স্টেট (শুরুতে #hero)
+  const [activeSection, setActiveSection] = useState("#hero");
+
   const navLinks = [
-    { href: "#hero", label: "হোম", active: true },
-    // { href: "#catalog", label: "পণ্যসমূহ", active: false },
-    { href: "#focus-product", label: "ম্যাকা কফি", active: false },
-    { href: "#benefits", label: "উপকারিতা", active: false },
-    { href: "#checkout-section", label: "অর্ডার ফর্ম", active: false },
+    { href: "#hero", label: "হোম" },
+    // { href: "#catalog", label: "পণ্যসমূহ" },
+    { href: "#focus-product", label: "ম্যাকা কফি" },
+    { href: "#benefits", label: "উপকারিতা" },
+    { href: "#checkout-section", label: "অর্ডার ফর্ম" },
   ];
+
+  // স্ক্রল করার সময় সেকশন ডিটেক্ট করার জন্য useEffect
+  useEffect(() => {
+    const handleScroll = () => {
+      // সেকশনগুলোর আইডি (অ্যাঙ্কর ট্যাগ থেকে # বাদ দিয়ে)
+      const sections = navLinks.map((link) => link.href.substring(1));
+
+      const scrollPosition = window.scrollY + 200; // সামান্য অফসেট যাতে আগে থেকেইভ হয়
+
+      for (const sectionId of sections) {
+        const element = document.getElementById(sectionId);
+        if (element) {
+          const top = element.offsetTop;
+          const height = element.offsetHeight;
+
+          if (scrollPosition >= top && scrollPosition < top + height) {
+            setActiveSection(`#${sectionId}`);
+            break;
+          }
+        }
+      }
+    };
+
+    window.addEventListener("scroll", handleScroll);
+    return () => window.removeEventListener("scroll", handleScroll);
+  }, []);
 
   return (
     <header className="sticky top-0 z-40 backdrop-blur-md bg-white/90 dark:bg-brand-slate/90 border-b border-slate-200 dark:border-slate-800">
@@ -60,20 +85,24 @@ export const Header = () => {
             </p>
           </div>
         </a>
+
         <nav className="hidden lg:flex items-center space-x-8 text-base font-medium">
-          {navLinks.map((link) => (
-            <a
-              key={link.href}
-              href={link.href}
-              className={
-                link.active
-                  ? "text-brand-teal dark:text-brand-green font-semibold"
-                  : "text-slate-600 dark:text-slate-300 hover:text-brand-teal dark:hover:text-white transition"
-              }
-            >
-              {link.label}
-            </a>
-          ))}
+          {navLinks.map((link) => {
+            const isActive = activeSection === link.href;
+            return (
+              <a
+                key={link.href}
+                href={link.href}
+                className={
+                  isActive
+                    ? "text-brand-teal dark:text-brand-green font-semibold transition"
+                    : "text-slate-600 dark:text-slate-300 hover:text-brand-teal dark:hover:text-white transition"
+                }
+              >
+                {link.label}
+              </a>
+            );
+          })}
         </nav>
 
         <div className="flex items-center gap-3 sm:gap-4">
@@ -89,7 +118,7 @@ export const Header = () => {
             href="tel:01778155184"
             className="hidden sm:flex items-center gap-2 px-3.5 py-2 rounded-lg bg-slate-100 dark:bg-slate-800 text-brand-teal dark:text-slate-200 font-semibold text-sm hover:border-brand-teal border border-transparent transition"
           >
-            <PhoneIcon size={16} />
+            <IconPhone size={16} />
             <span>০১৭৭৮-১৫৫১৮৪</span>
           </a>
 
