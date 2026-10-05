@@ -109,7 +109,7 @@ export const FocusProduct = () => {
 
                 {/* 3. WhatsApp Order */}
                 <a
-                  href="https://wa.me/01778155184?text=হ্যালো%VitalCareBD,%20আমি%20ম্যাকা%20কফি%20অর্ডার%20করতে%20চাই"
+                  href="https://wa.me/+8801778155184?text=হ্যালো%VitalCareBD,%20আমি%20ম্যাকা%20কফি%20অর্ডার%20করতে%20চাই"
                   target="_blank"
                   rel="noreferrer"
                   className="flex items-center justify-center gap-2 py-3.5 px-4 rounded-xl bg-[#25D366] hover:bg-[#20ba59] text-white font-bold text-sm sm:text-base transition shadow-md"
