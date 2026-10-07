@@ -6,6 +6,7 @@ export const CartProvider = ({ children }) => {
   const [cartItems, setCartItems] = useState([]);
   const [isCartOpen, setIsCartOpen] = useState(false);
   const [showSuccessModal, setShowSuccessModal] = useState(false);
+  const [orderId, setOrderId] = useState(null); 
 
   // Cart-e item add kora (product & variant shoh)
   const addToCart = (product, selectedVariant, qty = 1) => {
@@ -78,15 +79,18 @@ export const CartProvider = ({ children }) => {
     0,
   );
 
-  // Order Complete Handler (Popup notification & Cart Reset)
-  const triggerOrderSuccess = () => {
+  // Order Complete Handler (Order ID গ্রহণ করা এবং Modal ওপেন করা)
+  const triggerOrderSuccess = (newOrderId = null) => {
+    if (newOrderId) {
+      setOrderId(newOrderId);
+    }
     setIsCartOpen(false);
     setShowSuccessModal(true);
     clearCart();
 
     setTimeout(() => {
       setShowSuccessModal(false);
-    }, 5000);
+    }, 7000); // Modal দেখার সুবিধার্থে সময় একটু বাড়িয়ে ৭ সেকেন্ড করা হলো
   };
 
   return (
@@ -102,6 +106,8 @@ export const CartProvider = ({ children }) => {
         totalItemsCount,
         subtotal,
         showSuccessModal,
+        setShowSuccessModal,
+        orderId,
         triggerOrderSuccess,
       }}
     >

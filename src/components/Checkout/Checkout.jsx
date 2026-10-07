@@ -3,22 +3,23 @@ import { useCart } from "../../context/CartContext";
 import { productsData } from "../../data/products";
 import { truncateText } from "../../utils/utils";
 
-export const Checkout = ({ selectedProduct }) => {
-  const { cartItems, updateQuantity, triggerOrderSuccess } = useCart();
+// ⚠️ এখানে আপনার গুগল অ্যাপস স্ক্রিপ্ট ওয়েব অ্যাপ URL টি বসান
+const GOOGLE_SHEET_API_URL =
+  "https://script.google.com/macros/s/AKfycbzRLIdKiHaUTM2vk_okh7-oqYutTNrMzQw4lGgNPb0TQ2PHOaVnDkMpEfo_uONnc4uc/exec";
 
-  // Selected product / main product reference
+export const Checkout = ({ selectedProduct }) => {
+  const { cartItems, updateQuantity, triggerOrderSuccess, clearCart } =
+    useCart();
+
   const mainProduct = selectedProduct || productsData[0];
 
-  // ভেরিয়েন্ট ও কোয়ান্টিটি ট্র্যাক করার জন্য স্টেট
   const [variantId, setVariantId] = useState(
     mainProduct?.variants?.[0]?.id || null,
   );
   const [singleQuantity, setSingleQuantity] = useState(1);
-
-  // Delivery Location State (ডিফল্ট: inside_dhaka)
   const [deliveryLocation, setDeliveryLocation] = useState("inside_dhaka");
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
-  // Form State (নাম, ঠিকানা, ফোন ও কাস্টমার নোট)
   const [formData, setFormData] = useState({
     name: "",
     address: "",
@@ -26,16 +27,13 @@ export const Checkout = ({ selectedProduct }) => {
     note: "",
   });
 
-  // নির্বাচিত ভেরিয়েন্ট খুঁজে বের করা
   const selectedVariant =
     mainProduct?.variants?.find((v) => v.id === variantId) ||
     mainProduct?.variants?.[0] ||
     null;
 
-  // Cart mode check
   const isCartMode = cartItems.length > 0;
 
-  // সিঙ্গেল প্রোডাক্ট/ভেরিয়েন্ট কোয়ান্টিটি পরিবর্তন করার ফাংশন
   const handleSingleQuantityChange = (targetVariantId, delta) => {
     if (selectedVariant?.id !== targetVariantId) {
       setVariantId(targetVariantId);
@@ -45,10 +43,8 @@ export const Checkout = ({ selectedProduct }) => {
     }
   };
 
-  // ডেলিভারি চার্জ নির্ধারণ
   const deliveryCharge = deliveryLocation === "inside_dhaka" ? 60 : 120;
 
-  // সাবটোটাল হিসাব
   const calculateSubtotal = () => {
     if (isCartMode) {
       return cartItems.reduce(
@@ -63,11 +59,61 @@ export const Checkout = ({ selectedProduct }) => {
   };
 
   const subtotal = calculateSubtotal();
-  const totalAmount = subtotal + deliveryCharge; // ডেলিভারি চার্জ সহ সর্বমোট
+  const totalAmount = subtotal + deliveryCharge;
 
-  const handleSubmit = (e) => {
+  // অর্ডার সাবমিট এবং Google Sheet-এ ডাটা সেভ ফাংশন
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    triggerOrderSuccess();
+    setIsSubmitting(true);
+
+    // আইটেম লিস্ট প্রস্তুত করা
+    const orderItems = isCartMode
+      ? cartItems.map((item) => ({
+          name: item.name,
+          variantTitle: item.variantTitle || "",
+          quantity: item.quantity,
+          price: item.price,
+        }))
+      : [
+          {
+            name: mainProduct.name,
+            variantTitle: selectedVariant?.title || "",
+            quantity: singleQuantity,
+            price: selectedVariant ? selectedVariant.price : mainProduct.price,
+          },
+        ];
+
+    const payload = {
+      ...formData,
+      deliveryLocation,
+      subtotal,
+      deliveryCharge,
+      totalAmount,
+      items: orderItems,
+    };
+
+    try {
+      const response = await fetch(GOOGLE_SHEET_API_URL, {
+        method: "POST",
+        headers: { "Content-Type": "text/plain;charset=utf-8" },
+        body: JSON.stringify(payload),
+      });
+
+      const result = await response.json();
+
+      if (result.result === "success") {
+        // অর্ডার সাকসেস ট্রিগার করুন এবং Order ID পাস করুন
+        triggerOrderSuccess(result.orderId);
+        if (clearCart) clearCart();
+      } else {
+        alert("অর্ডার প্রসেস করতে সমস্যা হয়েছে। আবার চেষ্টা করুন।");
+      }
+    } catch (error) {
+      console.error("Error submitting order:", error);
+      alert("নেটওয়ার্ক সমস্যা! পরে আবার চেষ্টা করুন।");
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
@@ -75,10 +121,9 @@ export const Checkout = ({ selectedProduct }) => {
       id="checkout-section"
       className="py-16 bg-white dark:bg-[#0B1322] border-t border-slate-200 dark:border-slate-800 text-slate-800 dark:text-slate-100 relative"
     >
-      <div className="absolute -top-32 -left-32 w-96 h-96 rounded-full bg-brand-teal/20 blur-3xl pointer-events-none"></div>
-      <div className="absolute top-1/2 -right-32 w-96 h-96 rounded-full bg-brand-green/10 blur-3xl pointer-events-none"></div>
+      {/* <div className="absolute -top-32 -left-32 w-96 h-96 rounded-full bg-brand-teal/20 blur-3xl pointer-events-none"></div>
+      <div className="absolute top-1/2 -right-32 w-96 h-96 rounded-full bg-brand-green/10 blur-3xl pointer-events-none"></div> */}
       <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
-        {/* Header Title */}
         <div className="text-center mb-10">
           <h2 className="text-xl sm:text-2xl lg:text-3xl font-extrabold text-slate-900 dark:text-white flex items-center justify-center gap-2">
             অর্ডার করতে ফর্মটি পূরণ করে নিচে "কনফার্ম অর্ডার" বাটনে ক্লিক করুন
@@ -87,7 +132,7 @@ export const Checkout = ({ selectedProduct }) => {
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-8">
-          {/* 1. Selected Product List / Variants */}
+          {/* Selected Product List / Variants */}
           <div>
             <h3 className="text-base font-bold mb-3 text-slate-800 dark:text-slate-200">
               {isCartMode
@@ -97,7 +142,6 @@ export const Checkout = ({ selectedProduct }) => {
 
             <div className="border border-slate-200 dark:border-slate-700 rounded-xl divide-y divide-slate-200 dark:divide-slate-700 bg-slate-50/50 dark:bg-slate-800/40 overflow-hidden">
               {isCartMode ? (
-                // 🟢 CART MODE
                 cartItems.map((item) => (
                   <div
                     key={item.variantId || item.id}
@@ -159,7 +203,6 @@ export const Checkout = ({ selectedProduct }) => {
                   </div>
                 ))
               ) : mainProduct?.variants && mainProduct.variants.length > 0 ? (
-                // 🔵 SINGLE MODE (WITH VARIANTS)
                 mainProduct.variants.map((variant) => {
                   const isSelected = selectedVariant?.id === variant.id;
                   const currentQty = isSelected ? singleQuantity : 1;
@@ -245,7 +288,6 @@ export const Checkout = ({ selectedProduct }) => {
                   );
                 })
               ) : (
-                // 🟠 SINGLE MODE (WITHOUT VARIANTS)
                 <div className="p-4 flex flex-col sm:flex-row items-start sm:items-center justify-between bg-emerald-50/60 dark:bg-slate-800/90 border-l-4 border-brand-green gap-4">
                   <div className="flex items-center gap-3">
                     <img
@@ -296,9 +338,8 @@ export const Checkout = ({ selectedProduct }) => {
             </div>
           </div>
 
-          {/* 2. Billing details & Summary */}
+          {/* Billing details & Summary */}
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
-            {/* Left: Billing Info & Shipping */}
             <div className="lg:col-span-7 space-y-6">
               <div>
                 <h3 className="text-base font-bold mb-3 text-slate-800 dark:text-slate-200">
@@ -419,7 +460,6 @@ export const Checkout = ({ selectedProduct }) => {
                     <span>Subtotal</span>
                   </div>
 
-                  {/* Product items list */}
                   <div className="py-2 border-b border-dashed border-slate-200 dark:border-slate-700 space-y-2">
                     {isCartMode ? (
                       cartItems.map((item) => (
@@ -454,7 +494,6 @@ export const Checkout = ({ selectedProduct }) => {
                     )}
                   </div>
 
-                  {/* Subtotal */}
                   <div className="py-3 border-b border-slate-200 dark:border-slate-700 flex justify-between text-sm">
                     <span className="text-slate-600 dark:text-slate-400">
                       Subtotal
@@ -462,7 +501,6 @@ export const Checkout = ({ selectedProduct }) => {
                     <span className="font-bold">{subtotal}.00৳</span>
                   </div>
 
-                  {/* Shipping Charge */}
                   <div className="py-3 border-b border-slate-200 dark:border-slate-700 flex justify-between text-sm">
                     <span className="text-slate-600 dark:text-slate-400">
                       Delivery Charge
@@ -470,7 +508,6 @@ export const Checkout = ({ selectedProduct }) => {
                     <span className="font-bold">{deliveryCharge}.00৳</span>
                   </div>
 
-                  {/* Total */}
                   <div className="py-3 flex justify-between text-base font-extrabold text-slate-900 dark:text-white">
                     <span>Total</span>
                     <span className="text-brand-green">{totalAmount}.00৳</span>
@@ -487,9 +524,14 @@ export const Checkout = ({ selectedProduct }) => {
 
                   <button
                     type="submit"
-                    className="w-full mt-5 py-3.5 rounded-xl bg-brand-green hover:bg-green-600 text-slate-950 font-bold text-base transition flex items-center justify-center gap-2 cursor-pointer shadow-lg active:scale-95"
+                    disabled={isSubmitting}
+                    className="w-full mt-5 py-3.5 rounded-xl bg-brand-green hover:bg-green-600 text-slate-950 font-bold text-base transition flex items-center justify-center gap-2 cursor-pointer shadow-lg active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed"
                   >
-                    <span>🔒 অর্ডার কনফার্ম করুন {totalAmount}.00৳</span>
+                    <span>
+                      {isSubmitting
+                        ? "অর্ডার প্রসেস হচ্ছে..."
+                        : `🔒 অর্ডার কনফার্ম করুন ${totalAmount}.00৳`}
+                    </span>
                   </button>
                 </div>
               </div>
