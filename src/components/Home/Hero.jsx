@@ -45,6 +45,9 @@ export const Hero = () => {
       id="hero"
       className="relative overflow-hidden pt-12 pb-20 lg:pt-20 lg:pb-28 border-y border-slate-200 dark:border-brand-slate-border"
     >
+      <div className="absolute -top-32 -left-32 w-96 h-96 rounded-full bg-brand-teal/20 blur-3xl pointer-events-none"></div>
+      <div className="absolute top-1/2 -right-32 w-96 h-96 rounded-full bg-brand-green/10 blur-3xl pointer-events-none"></div>
+
       {/* Decorative Glow Background Effects */}
       <div className="absolute top-1/4 left-1/2 -translate-x-1/2 -translate-y-1/2 w-125 h-125 bg-brand-green/10 dark:bg-brand-green/5 rounded-full blur-3xl pointer-events-none -z-10" />
       <div className="absolute top-1/3 right-10 w-75 h-75 bg-brand-teal/15 dark:bg-brand-teal/10 rounded-full blur-3xl pointer-events-none -z-10" />
@@ -110,7 +113,7 @@ export const Hero = () => {
           <div className="lg:col-span-5 relative flex justify-center">
             <div className="relative w-full max-w-md lg:max-w-none">
               {/* Image Container with Styling */}
-              <div className="relative rounded-2xl overflow-hidden bg-linear-to-tr from-[#0D4B63] to-brand-green p-1 shadow-2xl">
+              <div className="relative rounded-2xl overflow-hidden bg-linear-to-tr from-brand-teal to-brand-green p-1 shadow-2xl">
                 <div className="bg-slate-900 rounded-[14px] overflow-hidden aspect-4/5 relative flex items-center justify-center">
                   <img
                     src={heroData.imageSection.src}

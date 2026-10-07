@@ -53,18 +53,9 @@ export default function App() {
   const [selectedProductForQuickOrder, setSelectedProductForQuickOrder] =
     useState(productsData[0]);
 
-  // const handleQuickOrder = (product) => {
-  //   setSelectedProductForQuickOrder(product);
-  //   const checkoutEl = document.getElementById("checkout-section");
-  //   if (checkoutEl) {
-  //     checkoutEl.scrollIntoView({ behavior: "smooth" });
-  //   }
-  // };
-
   return (
     <Layout>
       <Hero />
-      {/* <DynamicCatalog onQuickOrderSelect={handleQuickOrder} /> */}
       <FocusProduct />
       <WhyVitalCare />
       <TrustBadges />

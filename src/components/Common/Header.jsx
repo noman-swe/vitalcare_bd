@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { useTheme } from "../../context/ThemeContext";
 // import { useCart } from "../../context/CartContext";
-import { SpaIcon, LockIcon } from "../../icons/Icons";
+import { LockIcon } from "../../icons/Icons";
 import { IconMoon, IconPhone, IconSun } from "@tabler/icons-react";
 
 export const Header = () => {
@@ -68,8 +68,16 @@ export const Header = () => {
       {/* Main Nav */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-20 flex items-center justify-between">
         <a href="#" className="flex items-center gap-3">
-          <div className="w-11 h-11 rounded-xl bg-brand-teal flex items-center justify-center text-brand-green shadow-md">
-            <SpaIcon size={24} />
+          {/* <SpaIcon size={24} /> */}
+          {/* <div className="w-11 h-11 rounded-xl bg-brand-teal flex items-center justify-center text-brand-green shadow-md">
+            <img src="../../../public/favicon.svg" className="" />
+          </div> */}
+          <div className="w-11 h-11 rounded-xl bg-[#E0F2F1] flex items-center justify-center p-2 shadow-sm border border-[#B2DFDB]">
+            <img
+              src="/favicon.svg"
+              alt="VitalCare Logo"
+              className="w-full h-full object-contain"
+            />
           </div>
           <div>
             <div className="flex items-center">

@@ -86,7 +86,7 @@ export const CartProvider = ({ children }) => {
 
     setTimeout(() => {
       setShowSuccessModal(false);
-    }, 2000);
+    }, 5000);
   };
 
   return (
