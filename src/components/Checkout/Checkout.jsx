@@ -3,7 +3,7 @@ import { useCart } from "../../context/CartContext";
 import { productsData } from "../../data/products";
 import { truncateText } from "../../utils/utils";
 
-// ⚠️ এখানে আপনার গুগল অ্যাপস স্ক্রিপ্ট ওয়েব অ্যাপ URL টি বসান
+// ⚠️ এখানে আপনার গুগল অ্যাপস স্ক্রিপ্ট ওয়েব অ্যাপ URL টি বসান
 const GOOGLE_SHEET_API_URL =
   "https://script.google.com/macros/s/AKfycbzRLIdKiHaUTM2vk_okh7-oqYutTNrMzQw4lGgNPb0TQ2PHOaVnDkMpEfo_uONnc4uc/exec";
 
@@ -23,9 +23,11 @@ export const Checkout = ({ selectedProduct }) => {
   const [formData, setFormData] = useState({
     name: "",
     address: "",
-    phone: "",
+    phone: "", // এখানে ১০ ডিজিট থাকবে (যেমন: 1712345678)
     note: "",
   });
+
+  const [phoneError, setPhoneError] = useState("");
 
   const selectedVariant =
     mainProduct?.variants?.find((v) => v.id === variantId) ||
@@ -61,12 +63,42 @@ export const Checkout = ({ selectedProduct }) => {
   const subtotal = calculateSubtotal();
   const totalAmount = subtotal + deliveryCharge;
 
-  // অর্ডার সাবমিট এবং Google Sheet-এ ডাটা সেভ ফাংশন
+  // মোবাইল নম্বর হ্যান্ডলার
+  const handlePhoneChange = (e) => {
+    const value = e.target.value.replace(/\D/g, "");
+    if (value.length <= 10) {
+      setFormData({ ...formData, phone: value });
+      if (phoneError) setPhoneError("");
+    }
+  };
+
+  // ফোন নম্বর ভ্যালিডেশন
+  const validatePhone = () => {
+    const bdPhoneRegex = /^1[3-9]\d{8}$/;
+    if (!formData.phone) {
+      setPhoneError("ফোন নম্বর প্রদান করা আবশ্যক");
+      return false;
+    }
+    if (!bdPhoneRegex.test(formData.phone)) {
+      setPhoneError("সঠিক ১০ ডিজিটের মোবাইল নম্বর দিন (যেমন: 17XXXXXXXX)");
+      return false;
+    }
+    setPhoneError("");
+    return true;
+  };
+
+  // অর্ডার সাবমিট এবং রিসেট ফাংশন
   const handleSubmit = async (e) => {
     e.preventDefault();
+
+    if (!validatePhone()) {
+      return;
+    }
+
     setIsSubmitting(true);
 
-    // আইটেম লিস্ট প্রস্তুত করা
+    const fullPhoneNumber = `+880${formData.phone}`;
+
     const orderItems = isCartMode
       ? cartItems.map((item) => ({
           name: item.name,
@@ -85,6 +117,7 @@ export const Checkout = ({ selectedProduct }) => {
 
     const payload = {
       ...formData,
+      phone: fullPhoneNumber,
       deliveryLocation,
       subtotal,
       deliveryCharge,
@@ -102,15 +135,25 @@ export const Checkout = ({ selectedProduct }) => {
       const result = await response.json();
 
       if (result.result === "success") {
-        // অর্ডার সাকসেস ট্রিগার করুন এবং Order ID পাস করুন
         triggerOrderSuccess(result.orderId);
+
+        // 🔄 কার্ট এবং সিঙ্গেল অর্ডার স্টেট পুরোপুরি রিসেট করা হচ্ছে
         if (clearCart) clearCart();
+        setSingleQuantity(1); // ১ টিতে রিসেট
+        setVariantId(mainProduct?.variants?.[0]?.id || null); // প্রথম ভ্যারিয়েন্টে রিসেট
+        setFormData({
+          name: "",
+          address: "",
+          phone: "",
+          note: "",
+        });
+        setPhoneError("");
       } else {
-        alert("অর্ডার প্রসেস করতে সমস্যা হয়েছে। আবার চেষ্টা করুন।");
+        alert("অর্ডার প্রসেস করতে সমস্যা হয়েছে। আবার চেষ্টা করুন।");
       }
     } catch (error) {
       console.error("Error submitting order:", error);
-      alert("নেটওয়ার্ক সমস্যা! পরে আবার চেষ্টা করুন।");
+      alert("নেটওয়ার্ক সমস্যা! পরে আবার চেষ্টা করুন।");
     } finally {
       setIsSubmitting(false);
     }
@@ -121,8 +164,6 @@ export const Checkout = ({ selectedProduct }) => {
       id="checkout-section"
       className="py-16 bg-white dark:bg-[#0B1322] border-t border-slate-200 dark:border-slate-800 text-slate-800 dark:text-slate-100 relative"
     >
-      {/* <div className="absolute -top-32 -left-32 w-96 h-96 rounded-full bg-brand-teal/20 blur-3xl pointer-events-none"></div>
-      <div className="absolute top-1/2 -right-32 w-96 h-96 rounded-full bg-brand-green/10 blur-3xl pointer-events-none"></div> */}
       <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="text-center mb-10">
           <h2 className="text-xl sm:text-2xl lg:text-3xl font-extrabold text-slate-900 dark:text-white flex items-center justify-center gap-2">
@@ -357,16 +398,34 @@ export const Checkout = ({ selectedProduct }) => {
                     className="w-full px-4 py-3 rounded-lg bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 text-sm focus:outline-none focus:border-brand-green dark:text-white"
                   />
 
-                  <input
-                    type="tel"
-                    required
-                    placeholder="আপনার মোবাইল *"
-                    value={formData.phone}
-                    onChange={(e) =>
-                      setFormData({ ...formData, phone: e.target.value })
-                    }
-                    className="w-full px-4 py-3 rounded-lg bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 text-sm focus:outline-none focus:border-brand-green dark:text-white"
-                  />
+                  {/* Phone Input */}
+                  <div>
+                    <div
+                      className={`flex items-center rounded-lg bg-white dark:bg-slate-900 border ${
+                        phoneError
+                          ? "border-red-500 dark:border-red-500"
+                          : "border-slate-300 dark:border-slate-700 focus-within:border-brand-green"
+                      } overflow-hidden`}
+                    >
+                      <span className="px-3 py-3 text-sm font-semibold bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 border-r border-slate-300 dark:border-slate-700 select-none">
+                        +880
+                      </span>
+                      <input
+                        type="tel"
+                        required
+                        placeholder="1712345678 *"
+                        value={formData.phone}
+                        onChange={handlePhoneChange}
+                        onBlur={validatePhone}
+                        className="w-full px-4 py-3 bg-transparent text-sm focus:outline-none dark:text-white"
+                      />
+                    </div>
+                    {phoneError && (
+                      <p className="mt-1 text-xs text-red-500 font-medium">
+                        {phoneError}
+                      </p>
+                    )}
+                  </div>
 
                   <input
                     type="text"
@@ -542,3 +601,5 @@ export const Checkout = ({ selectedProduct }) => {
     </section>
   );
 };
+
+export default Checkout;
