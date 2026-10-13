@@ -1,6 +1,6 @@
 import { useState } from "react";
 import FaqSection from "./components/Common/FaqSection";
-import RecommendedProducts from "./components/Common/RecommandedProducts";
+// import RecommendedProducts from "./components/Common/RecommandedProducts";
 import CustomerReviews from "./components/Home/CustomerReviews";
 import { FocusProduct } from "./components/Home/FocusProduct";
 import { Hero } from "./components/Home/Hero";
@@ -61,7 +61,7 @@ export default function App() {
       <TrustBadges />
       <CustomerReviews />
       <FaqSection />
-      <RecommendedProducts />
+      {/* <RecommendedProducts /> */}
       <Checkout
         selectedProduct={selectedProductForQuickOrder}
         setSelectedProduct={setSelectedProductForQuickOrder}

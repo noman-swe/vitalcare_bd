@@ -3,6 +3,28 @@ import { useTheme } from "../../context/ThemeContext";
 // import { useCart } from "../../context/CartContext";
 import { LockIcon } from "../../icons/Icons";
 import { IconMoon, IconPhone, IconSun } from "@tabler/icons-react";
+import { navLinks } from "../../data/common";
+
+export const TopBar = () => {
+  return (
+    <div className="bg-brand-teal text-white text-xs sm:text-sm py-1.5 px-4">
+      <div className="max-w-7xl mx-auto flex items-center justify-between">
+        <div className="flex items-center gap-2">
+          <LockIcon size={16} />
+          <span className="font-medium">
+            ১০০% গোপনীয় ও সংরক্ষিত প্যাকেজিং (বক্সের বাইরে কোনো পণ্যের নাম
+            থাকবে না)
+          </span>
+        </div>
+        <div className="hidden md:flex items-center gap-4 text-xs">
+          <span>সারাদেশে ক্যাশ অন ডেলিভারি</span>
+          <span>•</span>
+          <span>হেল্পলাইন: ০১৭৭৮-১৫৫১৮৪</span>
+        </div>
+      </div>
+    </div>
+  );
+};
 
 export const Header = () => {
   const { theme, toggleTheme } = useTheme();
@@ -10,14 +32,6 @@ export const Header = () => {
 
   // কোন সেকশনটি বর্তমানে একটিভ আছে তা ট্র্যাক করার জন্য স্টেট (শুরুতে #hero)
   const [activeSection, setActiveSection] = useState("#hero");
-
-  const navLinks = [
-    { href: "#hero", label: "হোম" },
-    // { href: "#catalog", label: "পণ্যসমূহ" },
-    { href: "#focus-product", label: "ম্যাকা কফি" },
-    { href: "#benefits", label: "উপকারিতা" },
-    { href: "#checkout-section", label: "অর্ডার ফর্ম" },
-  ];
 
   // স্ক্রল করার সময় সেকশন ডিটেক্ট করার জন্য useEffect
   useEffect(() => {
@@ -48,30 +62,11 @@ export const Header = () => {
   return (
     <header className="sticky top-0 z-40 backdrop-blur-md bg-white/90 dark:bg-brand-slate/90 border-b border-slate-200 dark:border-slate-800">
       {/* Privacy Banner */}
-      <div className="bg-brand-teal text-white text-xs sm:text-sm py-1.5 px-4">
-        <div className="max-w-7xl mx-auto flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <LockIcon size={16} />
-            <span className="font-medium">
-              ১০০% গোপনীয় ও সংরক্ষিত প্যাকেজিং (বক্সের বাইরে কোনো পণ্যের নাম
-              থাকবে না)
-            </span>
-          </div>
-          <div className="hidden md:flex items-center gap-4 text-xs">
-            <span>সারাদেশে ক্যাশ অন ডেলিভারি</span>
-            <span>•</span>
-            <span>হেল্পলাইন: ০১৭৭৮-১৫৫১৮৪</span>
-          </div>
-        </div>
-      </div>
+      <TopBar />
 
       {/* Main Nav */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-20 flex items-center justify-between">
         <a href="#" className="flex items-center gap-3">
-          {/* <SpaIcon size={24} /> */}
-          {/* <div className="w-11 h-11 rounded-xl bg-brand-teal flex items-center justify-center text-brand-green shadow-md">
-            <img src="../../../public/favicon.svg" className="" />
-          </div> */}
           <div className="w-11 h-11 rounded-xl bg-[#E0F2F1] flex items-center justify-center p-2 shadow-sm border border-[#B2DFDB]">
             <img
               src="/favicon.svg"

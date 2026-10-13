@@ -1,3 +1,5 @@
+import { navLinks } from "../../data/common";
+
 export const Footer = () => {
   return (
     <footer className="bg-slate-900 text-slate-300 pt-16 pb-8 border-t border-slate-800">
@@ -18,29 +20,16 @@ export const Footer = () => {
             কুইক লিঙ্ক
           </h4>
           <ul className="space-y-2 text-xs">
-            <li>
-              <a href="#hero" className="hover:text-brand-green transition">
-                হোম
-              </a>
-            </li>
-            <li>
-              <a href="#catalog" className="hover:text-brand-green transition">
-                প্রোডাক্ট ক্যাটালগ
-              </a>
-            </li>
-            <li>
-              <a href="#benefits" className="hover:text-brand-green transition">
-                স্বাস্থ্য উপকারিতা
-              </a>
-            </li>
-            <li>
-              <a
-                href="#checkout-section"
-                className="hover:text-brand-green transition"
-              >
-                অর্ডার করুন
-              </a>
-            </li>
+            {navLinks.map((link) => (
+              <li key={link.href}>
+                <a
+                  href={link.href}
+                  className="hover:text-brand-green transition"
+                >
+                  {link.label}
+                </a>
+              </li>
+            ))}
           </ul>
         </div>
 
@@ -51,7 +40,7 @@ export const Footer = () => {
           <ul className="space-y-2 text-xs text-slate-400">
             <li>✓ ১০০% ডিসক্রিট ও আনমার্কেড বক্সে ডেলিভারি</li>
             <li>✓ ক্যাশ অন ডেলিভারি (পণ্য দেখে মূল্য পরিশোধ)</li>
-            <li>✓ ২৪/৭ সাপোর্ট হেল্পলাইন: ০১৭০০-০০০০০০</li>
+            <li>✓ ২৪/৭ সাপোর্ট হেল্পলাইন: ০১৭৭৮-১৫৫১৮৪</li>
             <li>✓ ঢাকা ও বাইরে ২-৩ দিনে দ্রুত হোম ডেলিভারি</li>
           </ul>
         </div>
