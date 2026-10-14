@@ -2,7 +2,7 @@ import { useState } from "react";
 import FaqSection from "./components/Common/FaqSection";
 // import RecommendedProducts from "./components/Common/RecommandedProducts";
 import CustomerReviews from "./components/Home/CustomerReviews";
-import { FocusProduct } from "./components/Home/FocusProduct";
+// import { FocusProduct } from "./components/Home/FocusProduct";
 import { Hero } from "./components/Home/Hero";
 import TrustBadges from "./components/Home/TrustBadges";
 import WhyVitalCare from "./components/Home/WhyVitalCare";
@@ -14,6 +14,8 @@ import { productsData } from "./data/products";
 import { Checkout } from "./components/Checkout/Checkout";
 import { CartDrawer } from "./components/Checkout/CartDrawer";
 import { OrderSuccessModal } from "./components/UI/OrderSuccessModal";
+import SoloShowCase from "./components/Home/SoloShowCase";
+import ProductVisuals from "./components/Home/ProductVisuals";
 
 // const DynamicCatalog = ({ onQuickOrderSelect }) => {
 //   const { addToCart } = useCart();
@@ -56,17 +58,19 @@ export default function App() {
   return (
     <Layout>
       <Hero />
-      <FocusProduct />
+      {/* <FocusProduct /> */}
+      <SoloShowCase />
       <WhyVitalCare />
       <TrustBadges />
       <CustomerReviews />
-      <FaqSection />
+      <ProductVisuals />
+
       {/* <RecommendedProducts /> */}
       <Checkout
         selectedProduct={selectedProductForQuickOrder}
         setSelectedProduct={setSelectedProductForQuickOrder}
       />
-
+      <FaqSection />
       {/* Cart Drawer & Success Modal */}
       <CartDrawer />
       <OrderSuccessModal />

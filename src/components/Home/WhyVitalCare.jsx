@@ -1,4 +1,5 @@
 import { whyVitalCareData } from "../../data/WhyVitalCare";
+import { SectionNameBadge } from "../UI/Badges";
 
 const WhyVitalCare = () => {
   const { header, benefits, ingredients } = whyVitalCareData;
@@ -11,9 +12,8 @@ const WhyVitalCare = () => {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         {/* হেডার সেকশন */}
         <div className="text-center max-w-3xl mx-auto mb-12">
-          <span className="text-xs uppercase tracking-widest text-brand-teal dark:text-brand-green font-bold bg-brand-teal/10 dark:bg-brand-green/10 px-3 py-1 rounded-full">
-            {header.badge}
-          </span>
+          <SectionNameBadge badgeTitle={header.badge} />
+
           <h2 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-slate-900 dark:text-white mt-3">
             {header.title}
           </h2>
@@ -23,27 +23,7 @@ const WhyVitalCare = () => {
         </div>
 
         {/* স্বাস্থ্য উপকারিতার কার্ডসমূহ (ডায়নামিক) */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-12">
-          {/* {benefits.map((item) => (
-            <div
-              key={item.id}
-              className="p-6 rounded-2xl bg-white dark:bg-slate-800 border border-slate-200 dark:border-brand-slate-border"
-            >
-              <div
-                className={`w-12 h-12 rounded-xl ${item.bgColor} ${item.textColor} flex items-center justify-center mb-4`}
-              >
-                <span className="material-symbols-outlined text-2xl">
-                  {item.icon}
-                </span>
-              </div>
-              <h3 className="text-lg font-bold text-slate-900 dark:text-white mb-2">
-                {item.title}
-              </h3>
-              <p className="text-xs sm:text-sm text-slate-600 dark:text-slate-300 leading-relaxed">
-                {item.description}
-              </p>
-            </div>
-          ))} */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-12">
           {/* বেনিফিট কার্ড রেন্ডারিং */}
           {benefits.map((item) => {
             const BenefitIcon = item.Icon;
@@ -66,9 +46,6 @@ const WhyVitalCare = () => {
               </div>
             );
           })}
-
-          {/* ইনগ্রেডিয়েন্ট হেডার আইকন */}
-          {/* <IngredientIcon size={24} stroke={2} className="text-brand-green" /> */}
         </div>
 
         {/* উপাদান সমূহের সেকশন (ডায়নামিক) */}

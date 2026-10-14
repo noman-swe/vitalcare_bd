@@ -7,6 +7,7 @@ import {
   IconChecklist,
 } from "@tabler/icons-react";
 import { reviewsSectionData } from "../../data/reviews";
+import { SectionNameBadge } from "../UI/Badges";
 
 const CustomerReviews = () => {
   const { sectionTitle, reviews, trustBadges } = reviewsSectionData;
@@ -27,9 +28,10 @@ const CustomerReviews = () => {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         {/* Header Section */}
         <div className="text-center max-w-3xl mx-auto mb-12">
-          <span className="text-xs uppercase tracking-widest text-brand-green font-bold bg-brand-green/10 px-3 py-1 rounded-full">
+          {/* <span className="text-xs uppercase tracking-widest text-brand-green font-bold bg-brand-green/10 px-3 py-1 rounded-full">
             {sectionTitle.badge}
-          </span>
+          </span> */}
+          <SectionNameBadge badgeTitle={sectionTitle.badge} />
           <h2 className="text-2xl sm:text-3xl font-bold text-slate-900 dark:text-white mt-3">
             {sectionTitle.heading}
           </h2>

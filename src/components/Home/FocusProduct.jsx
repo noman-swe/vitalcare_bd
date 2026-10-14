@@ -10,12 +10,12 @@ export const FocusProduct = () => {
   // const [quantity, setQuantity] = useState(1);
   // const { addToCart } = useCart(); // Multi-product mode er jonno
 
-  const focusProductItem = {
-    id: "macca-coffee",
-    name: "ম্যাকা কফি (Macca Coffee)",
-    price: 1250,
-    originalPrice: 1600,
-  };
+  // const focusProductItem = {
+  //   id: "macca-coffee",
+  //   name: "ম্যাকা কফি (Macca Coffee)",
+  //   price: 1250,
+  //   originalPrice: 1600,
+  // };
 
   /* 
   // Cart-e add korar handler (Single Product mode-e dorkar nei)

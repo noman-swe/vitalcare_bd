@@ -2,6 +2,7 @@ import { useState } from "react";
 import { useCart } from "../../context/CartContext";
 import { productsData } from "../../data/products";
 import { truncateText } from "../../utils/utils";
+import { SectionNameBadge } from "../UI/Badges";
 
 // ⚠️ এখানে আপনার গুগল অ্যাপস স্ক্রিপ্ট ওয়েব অ্যাপ URL টি বসান
 const GOOGLE_SHEET_API_URL =
@@ -65,8 +66,10 @@ export const Checkout = ({ selectedProduct }) => {
 
   // মোবাইল নম্বর হ্যান্ডলার
   const handlePhoneChange = (e) => {
+    // শুধুমাত্র নম্বর (digits) ফিল্টার করা হচ্ছে
     const value = e.target.value.replace(/\D/g, "");
-    if (value.length <= 10) {
+    // ১১ ডিজিট পর্যন্ত টাইপ করতে দেওয়া হবে
+    if (value.length <= 11) {
       setFormData({ ...formData, phone: value });
       if (phoneError) setPhoneError("");
     }
@@ -74,15 +77,19 @@ export const Checkout = ({ selectedProduct }) => {
 
   // ফোন নম্বর ভ্যালিডেশন
   const validatePhone = () => {
-    const bdPhoneRegex = /^1[3-9]\d{8}$/;
+    // ০১ দিয়ে শুরু হয়ে মোট ১১ ডিজিটের বিডি নাম্বার রেজেক্স (013-019)
+    const bdPhoneRegex = /^01[3-9]\d{8}$/;
+
     if (!formData.phone) {
       setPhoneError("ফোন নম্বর প্রদান করা আবশ্যক");
       return false;
     }
+
     if (!bdPhoneRegex.test(formData.phone)) {
-      setPhoneError("সঠিক ১০ ডিজিটের মোবাইল নম্বর দিন (যেমন: 17XXXXXXXX)");
+      setPhoneError("সঠিক ১১ ডিজিটের মোবাইল নম্বর দিন (যেমন: 017XXXXXXXX)");
       return false;
     }
+
     setPhoneError("");
     return true;
   };
@@ -166,7 +173,9 @@ export const Checkout = ({ selectedProduct }) => {
     >
       <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="text-center mb-10">
-          <h2 className="text-xl sm:text-2xl lg:text-3xl font-extrabold text-slate-900 dark:text-white flex items-center justify-center gap-2">
+          <SectionNameBadge badgeTitle={"অর্ডার করুন"} />
+
+          <h2 className="text-xl sm:text-2xl lg:text-3xl font-extrabold text-slate-900 dark:text-white flex items-center justify-center gap-2 mt-2">
             অর্ডার করতে ফর্মটি পূরণ করে নিচে "কনফার্ম অর্ডার" বাটনে ক্লিক করুন
             👉
           </h2>
@@ -407,16 +416,14 @@ export const Checkout = ({ selectedProduct }) => {
                           : "border-slate-300 dark:border-slate-700 focus-within:border-brand-green"
                       } overflow-hidden`}
                     >
-                      <span className="px-3 py-3 text-sm font-semibold bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 border-r border-slate-300 dark:border-slate-700 select-none">
-                        +880
-                      </span>
                       <input
                         type="tel"
                         required
-                        placeholder="1712345678 *"
+                        placeholder="আপনার ১১ ডিজিটের মোবাইল নম্বরটি দিন *"
                         value={formData.phone}
                         onChange={handlePhoneChange}
                         onBlur={validatePhone}
+                        maxLength={11}
                         className="w-full px-4 py-3 bg-transparent text-sm focus:outline-none dark:text-white"
                       />
                     </div>

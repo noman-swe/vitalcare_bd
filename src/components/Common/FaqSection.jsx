@@ -1,6 +1,7 @@
 import { IconChevronDown } from "@tabler/icons-react";
 import { useState } from "react";
 import { faqSectionData } from "../../data/faqData";
+import { SectionNameBadge } from "../UI/Badges";
 
 const FaqSection = () => {
   const { header, faqs } = faqSectionData;
@@ -13,14 +14,12 @@ const FaqSection = () => {
   return (
     <section
       id="faq"
-      className="py-16 bg-white dark:bg-[#0B1322] border-y border-slate-200 dark:border-brand-slate-border"
+      className="py-16 bg-white dark:bg-brand-slate border-y border-slate-200 dark:border-brand-slate-border"
     >
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
         {/* Header Section */}
         <div className="text-center mb-10">
-          <span className="text-xs uppercase tracking-widest text-brand-green font-bold bg-brand-green/10 px-3 py-1 rounded-full">
-            {header.badge}
-          </span>
+          <SectionNameBadge badgeTitle={header.badge} />
           <h2 className="text-2xl sm:text-3xl font-bold text-slate-900 dark:text-white mt-2">
             {header.title}
           </h2>
