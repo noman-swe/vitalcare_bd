@@ -29,7 +29,7 @@ const heroData = {
     { value: "২৪/৭", label: "কাস্টমার সাপোর্ট" },
   ],
   imageSection: {
-    src: "https://lh3.googleusercontent.com/aida-public/AB6AXuC_BQLbKiee4AjaFEpuqYT1xjHlJZ8Nin9oukyw7ZtFbwnLrjDWBaj2zLAGZQN-n5pDXSCDOddBq8NZ7X7Sj74_Tv_Cno4NoaeHYS8dXRIv60KHlc-zJ_k-LKtyKQ3VgBrYKnrIOIrNID3JFqIoVG0snYTuJWvNRey5fJkafedaS9N4E1bBbEVgi7an0SrmHyu_c2BVXVARKjSv-rQVQXt8ro9-5WtCRHBxgxkJ25jAwbImpGgDteNP",
+    src: "/images/banner-1.jpeg",
     alt: "VitalCareBD Macca Coffee Luxury Packaging",
     offerCard: {
       tag: "স্পেশাল অফার",
@@ -38,7 +38,7 @@ const heroData = {
     },
   },
 };
-
+// https://lh3.googleusercontent.com/aida-public/AB6AXuC_BQLbKiee4AjaFEpuqYT1xjHlJZ8Nin9oukyw7ZtFbwnLrjDWBaj2zLAGZQN-n5pDXSCDOddBq8NZ7X7Sj74_Tv_Cno4NoaeHYS8dXRIv60KHlc-zJ_k-LKtyKQ3VgBrYKnrIOIrNID3JFqIoVG0snYTuJWvNRey5fJkafedaS9N4E1bBbEVgi7an0SrmHyu_c2BVXVARKjSv-rQVQXt8ro9-5WtCRHBxgxkJ25jAwbImpGgDteNP
 export const Hero = () => {
   return (
     <section
@@ -121,7 +121,7 @@ export const Hero = () => {
                     className="w-full h-full object-cover rounded-2xl transform transition hover:scale-105 duration-500"
                   />
                   {/* Floating Highlight Card */}
-                  <div className="absolute bottom-4 left-4 right-4 bg-white/95 dark:bg-slate-900/95 backdrop-blur-md p-4 rounded-xl border border-slate-200 dark:border-slate-800 shadow-lg flex items-center justify-between">
+                  {/* <div className="absolute bottom-4 left-4 right-4 bg-white/95 dark:bg-slate-900/95 backdrop-blur-md p-4 rounded-xl border border-slate-200 dark:border-slate-800 shadow-lg flex items-center justify-between">
                     <div>
                       <p className="text-xs text-slate-500 dark:text-slate-400 uppercase tracking-wider font-bold">
                         {heroData.imageSection.offerCard.tag}
@@ -133,7 +133,7 @@ export const Hero = () => {
                     <span className="px-3 py-1 bg-brand-green/10 text-brand-green font-bold text-xs rounded-full">
                       {heroData.imageSection.offerCard.discount}
                     </span>
-                  </div>
+                  </div> */}
                 </div>
               </div>
             </div>
