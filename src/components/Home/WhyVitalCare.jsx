@@ -6,13 +6,34 @@ import { SectionNameBadge } from "../UI/Badges";
 const WhyVitalCare = () => {
   const { header, benefits, ingredients } = whyVitalCareData;
 
-  // Benefits Scroll States
+  // States for Section and Scroll Tracking
+  const [isInView, setIsInView] = useState(false);
   const [isBenefitsHovered, setIsBenefitsHovered] = useState(false);
-  const benefitsScrollRef = useRef(null);
-
-  // Ingredients Scroll States
   const [isIngredientsHovered, setIsIngredientsHovered] = useState(false);
+
+  const sectionRef = useRef(null);
+  const benefitsScrollRef = useRef(null);
   const ingredientsScrollRef = useRef(null);
+
+  // Intersection Observer to detect if the section is active/visible on screen
+  useEffect(() => {
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        setIsInView(entry.isIntersecting);
+      },
+      { threshold: 0.2 }
+    );
+
+    if (sectionRef.current) {
+      observer.observe(sectionRef.current);
+    }
+
+    return () => {
+      if (sectionRef.current) {
+        observer.unobserve(sectionRef.current);
+      }
+    };
+  }, []);
 
   // Manual Scroll Handlers
   const handleScroll = (ref, direction) => {
@@ -25,53 +46,53 @@ const WhyVitalCare = () => {
     }
   };
 
-  // Auto Scroll Effect for Benefits
+  // Auto Scroll Effect for Benefits (Every 1 second smoothly)
   useEffect(() => {
-    if (!isBenefitsHovered) return;
+    if (!isInView || isBenefitsHovered) return;
+
     const interval = setInterval(() => {
       if (benefitsScrollRef.current) {
-        const { scrollLeft, scrollWidth, clientWidth } =
-          benefitsScrollRef.current;
+        const { scrollLeft, scrollWidth, clientWidth } = benefitsScrollRef.current;
+        // Check if it reached the end, then loop back to start smoothly
         if (scrollLeft + clientWidth >= scrollWidth - 5) {
           benefitsScrollRef.current.scrollTo({ left: 0, behavior: "smooth" });
         } else {
           benefitsScrollRef.current.scrollBy({ left: 280, behavior: "smooth" });
         }
       }
-    }, 2500);
-    return () => clearInterval(interval);
-  }, [isBenefitsHovered]);
+    }, 1000); // Exactly 1 second interval
 
-  // Auto Scroll Effect for Ingredients
+    return () => clearInterval(interval);
+  }, [isInView, isBenefitsHovered]);
+
+  // Auto Scroll Effect for Ingredients (Every 1 second smoothly)
   useEffect(() => {
-    if (!isIngredientsHovered) return;
+    if (!isInView || isIngredientsHovered) return;
+
     const interval = setInterval(() => {
       if (ingredientsScrollRef.current) {
-        const { scrollLeft, scrollWidth, clientWidth } =
-          ingredientsScrollRef.current;
+        const { scrollLeft, scrollWidth, clientWidth } = ingredientsScrollRef.current;
+        // Check if it reached the end, then loop back to start smoothly
         if (scrollLeft + clientWidth >= scrollWidth - 5) {
-          ingredientsScrollRef.current.scrollTo({
-            left: 0,
-            behavior: "smooth",
-          });
+          ingredientsScrollRef.current.scrollTo({ left: 0, behavior: "smooth" });
         } else {
-          ingredientsScrollRef.current.scrollBy({
-            left: 280,
-            behavior: "smooth",
-          });
+          ingredientsScrollRef.current.scrollBy({ left: 280, behavior: "smooth" });
         }
       }
-    }, 2500);
+    }, 1000); // Exactly 1 second interval
+
     return () => clearInterval(interval);
-  }, [isIngredientsHovered]);
+  }, [isInView, isIngredientsHovered]);
 
   return (
     <section
+      ref={sectionRef}
       id="benefits"
       className="py-16 bg-slate-50 dark:bg-brand-slate border-y border-slate-200 dark:border-brand-slate-border"
     >
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        {/* হেডার সেকশন */}
+        
+        {/* Header Section */}
         <div className="text-center max-w-3xl mx-auto mb-12">
           <SectionNameBadge badgeTitle={header.badge} />
           <h2 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-slate-900 dark:text-white mt-3">
@@ -82,7 +103,7 @@ const WhyVitalCare = () => {
           </p>
         </div>
 
-        {/* স্বাস্থ্য উপকারিতার কার্ডসমূহ (Mobile: Horizontal Scroll with Navigators | Desktop: Grid) */}
+        {/* Benefits Section */}
         <div
           className="relative group mb-12"
           onMouseEnter={() => setIsBenefitsHovered(true)}
@@ -138,7 +159,7 @@ const WhyVitalCare = () => {
           </div>
         </div>
 
-        {/* উপাদান সমূহের সেকশন (Mobile: Horizontal Scroll with Navigators | Desktop: Grid) */}
+        {/* Ingredients Section */}
         <div className="bg-slate-50 dark:bg-brand-slate-card rounded-2xl p-6 sm:p-8 border border-slate-200 dark:border-brand-slate-border">
           <h3 className="text-lg font-bold text-slate-900 dark:text-white mb-4 flex items-center gap-2">
             <span className="material-symbols-outlined text-brand-green">
@@ -192,6 +213,7 @@ const WhyVitalCare = () => {
             </div>
           </div>
         </div>
+
       </div>
     </section>
   );
