@@ -1,6 +1,5 @@
 import { useState, useEffect } from "react";
 import { useTheme } from "../../context/ThemeContext";
-// import { useCart } from "../../context/CartContext";
 import { LockIcon } from "../../icons/Icons";
 import { IconMoon, IconPhone, IconSun } from "@tabler/icons-react";
 import { navLinks } from "../../data/common";

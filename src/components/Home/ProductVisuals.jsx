@@ -49,7 +49,10 @@ const ProductVisuals = () => {
   }, [isHovered]);
 
   return (
-    <section className="py-16 bg-white dark:bg-slate-900 border-b border-slate-200 dark:border-slate-800">
+    <section
+      id="gallery"
+      className="py-16 bg-white dark:bg-slate-900 border-b border-slate-200 dark:border-slate-800"
+    >
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         {/* Header Section */}
         <div className="text-center max-w-3xl mx-auto mb-12">
