@@ -1,45 +1,49 @@
 import { ShoppingCartIcon, SpaIcon } from "../../icons/Icons";
+import { productsData } from "../../data/products"; // ১. productsData ইমপোর্ট করা হলো
 
-// হিরো সেকশনের সমস্ত স্ট্যাটিক ডেটার কনফিগারেশন
-const heroData = {
-  topBadgeText: "১০০% প্রাকৃতিক ও প্রিমিয়াম কোয়ালিটি অর্গানিক প্রোডাক্ট",
-  headline: {
-    prefix: "প্রাকৃতিক শক্তিতে জীবনের স্বাভাবিক",
-    highlight: "উদ্যম ও প্রাণশক্তি",
-    suffix: "ফিরিয়ে আনুন",
-  },
-  description:
-    "VitalCare BD নিয়ে এসেছে সম্পূর্ণ প্রাকৃতিক উপাদানে তৈরি বিশ্বস্ত ওয়েলনেস সমাধান। কোনো রকম সাইড ইফেক্ট ছাড়াই আপনার দৈনন্দিন ফিটনেস ও স্ট্যামিনা নিশ্চিত করুন।",
-  ctaButtons: [
-    {
-      text: "অর্ডার করুন",
-      href: "#checkout-section",
-      primary: true,
-      icon: <ShoppingCartIcon size={20} />,
-    },
-    {
-      text: "বিস্তারিত দেখুন",
-      href: "#focus-product",
-      primary: false,
-    },
-  ],
-  trustBadges: [
-    { value: "১০০%", label: "অর্গানিক উপাদান" },
-    { value: "৫০০০+", label: "সন্তুষ্ট গ্রাহক" },
-    { value: "২৪/৭", label: "কাস্টমার সাপোর্ট" },
-  ],
-  imageSection: {
-    src: "/images/banner-1.jpeg",
-    alt: "VitalCareBD Macca Coffee Luxury Packaging",
-    offerCard: {
-      tag: "স্পেশাল অফার",
-      title: "ম্যাকা কফি (Macca Coffee)",
-      discount: "২৫% ছাড়",
-    },
-  },
-};
-// https://lh3.googleusercontent.com/aida-public/AB6AXuC_BQLbKiee4AjaFEpuqYT1xjHlJZ8Nin9oukyw7ZtFbwnLrjDWBaj2zLAGZQN-n5pDXSCDOddBq8NZ7X7Sj74_Tv_Cno4NoaeHYS8dXRIv60KHlc-zJ_k-LKtyKQ3VgBrYKnrIOIrNID3JFqIoVG0snYTuJWvNRey5fJkafedaS9N4E1bBbEVgi7an0SrmHyu_c2BVXVARKjSv-rQVQXt8ro9-5WtCRHBxgxkJ25jAwbImpGgDteNP
 export const Hero = () => {
+  // প্রডাক্ট ডেটা থেকে প্রথম প্রোডাক্টটি (ম্যাকা কফি) ফেচ করা হচ্ছে
+  const product = productsData[0];
+
+  // হিরো সেকশনের সমস্ত স্ট্যাটিক ও ডাইনামিক ডেটার কনফিগারেশন
+  const heroData = {
+    topBadgeText: "১০০% প্রাকৃতিক ও প্রিমিয়াম কোয়ালিটি অর্গানিক প্রোডাক্ট",
+    headline: {
+      prefix: "প্রাকৃতিক শক্তিতে জীবনের স্বাভাবিক",
+      highlight: "উদ্যম ও প্রাণশক্তি",
+      suffix: "ফিরিয়ে আনুন",
+    },
+    description:
+      "VitalCare BD নিয়ে এসেছে সম্পূর্ণ প্রাকৃতিক উপাদানে তৈরি বিশ্বস্ত ওয়েলনেস সমাধান। কোনো রকম সাইড ইফেক্ট ছাড়াই আপনার দৈনন্দিন ফিটনেস ও স্ট্যামিনা নিশ্চিত করুন।",
+    ctaButtons: [
+      {
+        text: "অর্ডার করুন",
+        href: "#checkout-section",
+        primary: true,
+        icon: <ShoppingCartIcon size={20} />,
+      },
+      {
+        text: "বিস্তারিত দেখুন",
+        href: "#focus-product",
+        primary: false,
+      },
+    ],
+    trustBadges: [
+      { value: "১০০%", label: "অর্গানিক উপাদান" },
+      { value: "১৭০০+", label: "সন্তুষ্ট গ্রাহক" },
+      { value: "২৪/৭", label: "কাস্টমার সাপোর্ট" },
+    ],
+    imageSection: {
+      src: "/images/banner-1.jpeg",
+      alt: `${product?.name || "Macca Coffee"} Luxury Packaging`,
+      offerCard: {
+        tag: "স্পেশাল অফার",
+        title: product?.name || "ম্যাকা কফি",
+        discount: product?.badge || "৫০% ছাড়",
+      },
+    },
+  };
+
   return (
     <section
       id="hero"
@@ -59,7 +63,7 @@ export const Hero = () => {
             {/* Top Badge */}
             <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-brand-teal/10 dark:bg-brand-teal/30 border border-brand-teal/20 dark:border-brand-teal/50 text-brand-teal dark:text-brand-green text-xs sm:text-sm font-semibold mb-6">
               <SpaIcon size={16} />
-              <span>{heroData.topBadgeText}</span>
+              <span className="w-42 sm:w-auto">{heroData.topBadgeText}</span>
             </div>
 
             {/* Main Headline */}
@@ -120,8 +124,9 @@ export const Hero = () => {
                     alt={heroData.imageSection.alt}
                     className="w-full h-full object-cover rounded-2xl transform transition hover:scale-105 duration-500"
                   />
-                  {/* Floating Highlight Card */}
-                  {/* <div className="absolute bottom-4 left-4 right-4 bg-white/95 dark:bg-slate-900/95 backdrop-blur-md p-4 rounded-xl border border-slate-200 dark:border-slate-800 shadow-lg flex items-center justify-between">
+
+                  {/* Floating Highlight Card (অফিসিয়ালি ডাইনামিক ডেটা সহ আনকমেন্ট করা হলো) */}
+                  <div className="absolute bottom-4 left-4 right-4 bg-white/95 dark:bg-slate-900/95 backdrop-blur-md p-4 rounded-xl border border-slate-200 dark:border-slate-800 shadow-lg flex items-center justify-between">
                     <div>
                       <p className="text-xs text-slate-500 dark:text-slate-400 uppercase tracking-wider font-bold">
                         {heroData.imageSection.offerCard.tag}
@@ -133,7 +138,7 @@ export const Hero = () => {
                     <span className="px-3 py-1 bg-brand-green/10 text-brand-green font-bold text-xs rounded-full">
                       {heroData.imageSection.offerCard.discount}
                     </span>
-                  </div> */}
+                  </div>
                 </div>
               </div>
             </div>
@@ -143,3 +148,5 @@ export const Hero = () => {
     </section>
   );
 };
+
+export default Hero;

@@ -60,7 +60,7 @@ const WhyVitalCare = () => {
           benefitsScrollRef.current.scrollBy({ left: 280, behavior: "smooth" });
         }
       }
-    }, 1000); // Exactly 1 second interval
+    }, 2000); // Exactly 1 second interval
 
     return () => clearInterval(interval);
   }, [isInView, isBenefitsHovered]);
@@ -79,7 +79,7 @@ const WhyVitalCare = () => {
           ingredientsScrollRef.current.scrollBy({ left: 280, behavior: "smooth" });
         }
       }
-    }, 1000); // Exactly 1 second interval
+    }, 2000); // Exactly 1 second interval
 
     return () => clearInterval(interval);
   }, [isInView, isIngredientsHovered]);
@@ -131,14 +131,14 @@ const WhyVitalCare = () => {
 
           <div
             ref={benefitsScrollRef}
-            className="flex md:grid md:grid-cols-2 lg:grid-cols-3 gap-6 overflow-x-auto md:overflow-visible overflow-y-hidden snap-x snap-mandatory py-2 px-1 [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden"
+            className="flex md:grid md:grid-cols-2 lg:grid-cols-3 gap-6 overflow-x-auto md:overflow-visible overflow-y-hidden snap-x snap-mandatory py-2 px-1 scrollbar-none [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden"
           >
             {benefits.map((item) => {
               const BenefitIcon = item.Icon;
               return (
                 <div
                   key={item.id}
-                  className="min-w-[280px] sm:min-w-[300px] md:min-w-full snap-start p-6 rounded-2xl bg-slate-50 dark:bg-brand-slate-card border border-slate-200 dark:border-brand-slate-border flex flex-col justify-between"
+                  className="min-w-70 sm:min-w-75 md:min-w-full snap-start p-6 rounded-2xl bg-slate-50 dark:bg-brand-slate-card border border-slate-200 dark:border-brand-slate-border flex flex-col justify-between"
                 >
                   <div>
                     <div
@@ -195,12 +195,12 @@ const WhyVitalCare = () => {
 
             <div
               ref={ingredientsScrollRef}
-              className="flex sm:grid sm:grid-cols-2 lg:grid-cols-4 gap-4 overflow-x-auto sm:overflow-visible overflow-y-hidden snap-x snap-mandatory py-2 px-1 [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden"
+              className="flex sm:grid sm:grid-cols-2 lg:grid-cols-4 gap-4 overflow-x-auto sm:overflow-visible overflow-y-hidden snap-x snap-mandatory py-2 px-1 scrollbar-none [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden"
             >
               {ingredients.items.map((ingredient) => (
                 <div
                   key={ingredient.id}
-                  className="min-w-[260px] sm:min-w-full snap-start p-3.5 rounded-xl bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700"
+                  className="min-w-65 sm:min-w-full snap-start p-3.5 rounded-xl bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700"
                 >
                   <strong className="text-sm text-brand-teal dark:text-brand-green block">
                     {ingredient.name}
