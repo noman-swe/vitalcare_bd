@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { productsData } from "../../data/products";
 import { truncateText } from "../../utils/utils";
 import { SectionNameBadge } from "../UI/Badges";
@@ -26,6 +26,17 @@ export const Checkout = ({ selectedProduct }) => {
       };
     }),
   };
+  // 🚀 হ্যাশ লিংক থাকলে অটো-স্ক্রল হ্যান্ডলার
+  useEffect(() => {
+    if (window.location.hash === "#checkout-section") {
+      const checkoutElem = document.getElementById("checkout-section");
+      if (checkoutElem) {
+        setTimeout(() => {
+          checkoutElem.scrollIntoView({ behavior: "smooth" });
+        }, 150);
+      }
+    }
+  }, []);
 
   // প্রথমে একটি ডিফল্ট ভ্যারিয়েন্ট সিলেক্টেড রাখা হলো
   const [variantId, setVariantId] = useState(
