@@ -1,18 +1,30 @@
 import { useState } from "react";
-import { useCart } from "../../context/CartContext";
 import { productsData } from "../../data/products";
 import { truncateText } from "../../utils/utils";
 import { SectionNameBadge } from "../UI/Badges";
+import { IconBrandWhatsapp } from "@tabler/icons-react";
 
 // ⚠️ এখানে আপনার গুগল অ্যাপস স্ক্রিপ্ট ওয়েব অ্যাপ URL টি বসান
 const GOOGLE_SHEET_API_URL =
   "https://script.google.com/macros/s/AKfycbzRLIdKiHaUTM2vk_okh7-oqYutTNrMzQw4lGgNPb0TQ2PHOaVnDkMpEfo_uONnc4uc/exec";
 
 export const Checkout = ({ selectedProduct }) => {
-  const { cartItems, updateQuantity, triggerOrderSuccess, clearCart } =
-    useCart();
+  const rawProduct = selectedProduct || productsData[0];
+  const discountPercent = rawProduct.discountPercentage || 0;
 
-  const mainProduct = selectedProduct || productsData[0];
+  // ডাইনামিক্যালি ভ্যারিয়েন্টগুলোতে price ক্যালকুলেট করে যুক্ত করা হচ্ছে
+  const mainProduct = {
+    ...rawProduct,
+    variants: rawProduct.variants.map((v) => {
+      const calculatedPrice = Math.round(
+        v.originalPrice - (v.originalPrice * discountPercent) / 100,
+      );
+      return {
+        ...v,
+        price: calculatedPrice,
+      };
+    }),
+  };
 
   const [variantId, setVariantId] = useState(
     mainProduct?.variants?.[0]?.id || null,
@@ -24,7 +36,7 @@ export const Checkout = ({ selectedProduct }) => {
   const [formData, setFormData] = useState({
     name: "",
     address: "",
-    phone: "", // এখানে ১০ ডিজিট থাকবে (যেমন: 1712345678)
+    phone: "",
     note: "",
   });
 
@@ -34,8 +46,6 @@ export const Checkout = ({ selectedProduct }) => {
     mainProduct?.variants?.find((v) => v.id === variantId) ||
     mainProduct?.variants?.[0] ||
     null;
-
-  const isCartMode = cartItems.length > 0;
 
   const handleSingleQuantityChange = (targetVariantId, delta) => {
     if (selectedVariant?.id !== targetVariantId) {
@@ -48,27 +58,13 @@ export const Checkout = ({ selectedProduct }) => {
 
   const deliveryCharge = deliveryLocation === "inside_dhaka" ? 60 : 120;
 
-  const calculateSubtotal = () => {
-    if (isCartMode) {
-      return cartItems.reduce(
-        (sum, item) => sum + Number(item.price) * Number(item.quantity),
-        0,
-      );
-    }
-    const unitPrice = selectedVariant
-      ? Number(selectedVariant.price)
-      : Number(mainProduct.price);
-    return unitPrice * singleQuantity;
-  };
-
-  const subtotal = calculateSubtotal();
+  const unitPrice = selectedVariant ? Number(selectedVariant.price) : 0;
+  const subtotal = unitPrice * singleQuantity;
   const totalAmount = subtotal + deliveryCharge;
 
   // মোবাইল নম্বর হ্যান্ডলার
   const handlePhoneChange = (e) => {
-    // শুধুমাত্র নম্বর (digits) ফিল্টার করা হচ্ছে
     const value = e.target.value.replace(/\D/g, "");
-    // ১১ ডিজিট পর্যন্ত টাইপ করতে দেওয়া হবে
     if (value.length <= 11) {
       setFormData({ ...formData, phone: value });
       if (phoneError) setPhoneError("");
@@ -77,7 +73,6 @@ export const Checkout = ({ selectedProduct }) => {
 
   // ফোন নম্বর ভ্যালিডেশন
   const validatePhone = () => {
-    // ০১ দিয়ে শুরু হয়ে মোট ১১ ডিজিটের বিডি নাম্বার রেজেক্স (013-019)
     const bdPhoneRegex = /^01[3-9]\d{8}$/;
 
     if (!formData.phone) {
@@ -106,21 +101,14 @@ export const Checkout = ({ selectedProduct }) => {
 
     const fullPhoneNumber = `+880${formData.phone}`;
 
-    const orderItems = isCartMode
-      ? cartItems.map((item) => ({
-          name: item.name,
-          variantTitle: item.variantTitle || "",
-          quantity: item.quantity,
-          price: item.price,
-        }))
-      : [
-          {
-            name: mainProduct.name,
-            variantTitle: selectedVariant?.title || "",
-            quantity: singleQuantity,
-            price: selectedVariant ? selectedVariant.price : mainProduct.price,
-          },
-        ];
+    const orderItems = [
+      {
+        name: mainProduct.name,
+        variantTitle: selectedVariant?.title || "",
+        quantity: singleQuantity,
+        price: unitPrice,
+      },
+    ];
 
     const payload = {
       ...formData,
@@ -142,12 +130,14 @@ export const Checkout = ({ selectedProduct }) => {
       const result = await response.json();
 
       if (result.result === "success") {
-        triggerOrderSuccess(result.orderId);
+        alert(
+          "আপনার অর্ডারটি সফলভাবে সম্পন্ন হয়েছে! অর্ডার আইডি: " +
+            result.orderId,
+        );
 
-        // 🔄 কার্ট এবং সিঙ্গেল অর্ডার স্টেট পুরোপুরি রিসেট করা হচ্ছে
-        if (clearCart) clearCart();
-        setSingleQuantity(1); // ১ টিতে রিসেট
-        setVariantId(mainProduct?.variants?.[0]?.id || null); // প্রথম ভ্যারিয়েন্টে রিসেট
+        // স্টেট রিসেট করা হচ্ছে
+        setSingleQuantity(1);
+        setVariantId(mainProduct?.variants?.[0]?.id || null);
         setFormData({
           name: "",
           address: "",
@@ -182,209 +172,104 @@ export const Checkout = ({ selectedProduct }) => {
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-8">
-          {/* Selected Product List / Variants */}
+          {/* Product Variants Selection */}
           <div>
             <h3 className="text-base font-bold mb-3 text-slate-800 dark:text-slate-200">
-              {isCartMode
-                ? "আপনার নির্বাচিত কার্ট প্রোডাক্টসমূহ"
-                : "প্রোডাক্ট প্যাকেজ ও পরিমাণ নির্বাচন করুন"}
+              প্রোডাক্ট প্যাকেজ ও পরিমাণ নির্বাচন করুন
             </h3>
 
             <div className="border border-slate-200 dark:border-slate-700 rounded-xl divide-y divide-slate-200 dark:divide-slate-700 bg-slate-50/50 dark:bg-slate-800/40 overflow-hidden">
-              {isCartMode ? (
-                cartItems.map((item) => (
-                  <div
-                    key={item.variantId || item.id}
-                    className="flex flex-col sm:flex-row items-start sm:items-center justify-between p-4 bg-emerald-50/60 dark:bg-slate-800/90 border-l-4 border-brand-green shadow-sm gap-4"
-                  >
-                    <div className="flex items-center gap-3 sm:gap-4 flex-1">
-                      <input
-                        type="checkbox"
-                        checked={true}
-                        readOnly
-                        className="accent-brand-green h-4 w-4 shrink-0"
-                      />
-                      <img
-                        src={item.image || mainProduct.image}
-                        alt={item.name}
-                        className="w-12 h-12 rounded-md object-cover border border-slate-200 dark:border-slate-700 shrink-0"
-                      />
-                      <div>
-                        <span className="text-xs sm:text-sm font-semibold text-slate-900 dark:text-white block">
-                          {item.name}
-                        </span>
-                        {item.variantTitle && (
-                          <span className="text-xs text-slate-500 dark:text-slate-400 block">
-                            {item.variantTitle} (একক মূল্য: {item.price}.00৳)
-                          </span>
-                        )}
-                      </div>
-                    </div>
+              {mainProduct?.variants && mainProduct.variants.length > 0
+                ? mainProduct.variants.map((variant) => {
+                    const isSelected = selectedVariant?.id === variant.id;
+                    const currentQty = isSelected ? singleQuantity : 1;
 
-                    <div className="flex items-center justify-between w-full sm:w-auto gap-4 pl-7 sm:pl-0">
-                      <div className="flex items-center border border-slate-300 dark:border-slate-600 rounded-lg overflow-hidden bg-white dark:bg-slate-900">
-                        <button
-                          type="button"
-                          onClick={() =>
-                            updateQuantity(item.variantId || item.id, -1)
-                          }
-                          className="px-3 py-1 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 font-bold text-slate-700 dark:text-slate-200 text-sm transition"
-                        >
-                          -
-                        </button>
-                        <span className="px-3 py-1 font-bold text-sm min-w-8 text-center text-slate-900 dark:text-white">
-                          {item.quantity}
-                        </span>
-                        <button
-                          type="button"
-                          onClick={() =>
-                            updateQuantity(item.variantId || item.id, 1)
-                          }
-                          className="px-3 py-1 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 font-bold text-slate-700 dark:text-slate-200 text-sm transition"
-                        >
-                          +
-                        </button>
-                      </div>
-
-                      <span className="text-sm font-bold text-slate-900 dark:text-white whitespace-nowrap min-w-20 text-right">
-                        {item.price * item.quantity}.00৳
-                      </span>
-                    </div>
-                  </div>
-                ))
-              ) : mainProduct?.variants && mainProduct.variants.length > 0 ? (
-                mainProduct.variants.map((variant) => {
-                  const isSelected = selectedVariant?.id === variant.id;
-                  const currentQty = isSelected ? singleQuantity : 1;
-
-                  return (
-                    <div
-                      key={variant.id}
-                      onClick={() => {
-                        if (!isSelected) {
-                          setVariantId(variant.id);
-                          setSingleQuantity(1);
-                        }
-                      }}
-                      className={`flex flex-col sm:flex-row items-start sm:items-center justify-between p-4 cursor-pointer transition gap-4 ${
-                        isSelected
-                          ? "bg-emerald-50/60 dark:bg-slate-800/90 border-l-4 border-brand-green shadow-sm"
-                          : "hover:bg-slate-100 dark:hover:bg-slate-800/50"
-                      }`}
-                    >
-                      <div className="flex items-center gap-3 sm:gap-4 flex-1">
-                        <input
-                          type="radio"
-                          name="quickOrderVariant"
-                          checked={isSelected}
-                          onChange={() => {
+                    return (
+                      <div
+                        key={variant.id}
+                        onClick={() => {
+                          if (!isSelected) {
                             setVariantId(variant.id);
                             setSingleQuantity(1);
-                          }}
-                          className="accent-brand-green h-4 w-4 shrink-0 cursor-pointer"
-                        />
-                        <img
-                          src={variant.image || mainProduct.image}
-                          alt={variant.title}
-                          className="w-12 h-12 rounded-md object-cover border border-slate-200 dark:border-slate-700 shrink-0"
-                        />
-                        <div>
-                          <span className="text-xs sm:text-sm font-semibold text-slate-900 dark:text-white block">
-                            {truncateText(
-                              `${mainProduct.name} - ${variant.title}`,
-                              70,
-                            )}
-                          </span>
-                          <span className="text-xs text-slate-500 dark:text-slate-400 block">
-                            একক মূল্য: {variant.price}.00৳
+                          }
+                        }}
+                        className={`flex flex-col sm:flex-row items-start sm:items-center justify-between p-4 cursor-pointer transition gap-4 ${
+                          isSelected
+                            ? "bg-emerald-50/60 dark:bg-slate-800/90 border-l-4 border-brand-green shadow-sm"
+                            : "hover:bg-slate-100 dark:hover:bg-slate-800/50"
+                        }`}
+                      >
+                        <div className="flex items-center gap-3 sm:gap-4 flex-1">
+                          <input
+                            type="radio"
+                            name="quickOrderVariant"
+                            checked={isSelected}
+                            onChange={() => {
+                              setVariantId(variant.id);
+                              setSingleQuantity(1);
+                            }}
+                            className="accent-brand-green h-4 w-4 shrink-0 cursor-pointer"
+                          />
+                          <img
+                            src={variant.image || mainProduct.image}
+                            alt={variant.title}
+                            className="w-16 h-16 rounded-md object-cover border border-slate-200 dark:border-slate-700 shrink-0"
+                          />
+                          <div>
+                            <span className="text-xs sm:text-sm font-semibold text-slate-900 dark:text-white block">
+                              {truncateText(
+                                `${mainProduct.name} - ${variant.title}`,
+                                70,
+                              )}
+                            </span>
+                            <span className="text-xs text-slate-500 dark:text-slate-400 flex items-center gap-2">
+                              <span>অফার মূল্য: {variant.price}.00৳</span>
+                              {variant.originalPrice && (
+                                <span className="line-through text-slate-400">
+                                  {variant.originalPrice}.00৳
+                                </span>
+                              )}
+                            </span>
+                          </div>
+                        </div>
+
+                        <div className="flex items-center justify-between w-full sm:w-auto gap-4 pl-7 sm:pl-0">
+                          <div
+                            className="flex items-center border border-slate-300 dark:border-slate-600 rounded-lg overflow-hidden bg-white dark:bg-slate-900"
+                            onClick={(e) => e.stopPropagation()}
+                          >
+                            <button
+                              type="button"
+                              disabled={isSelected && singleQuantity <= 1}
+                              onClick={() =>
+                                handleSingleQuantityChange(variant.id, -1)
+                              }
+                              className="px-3 py-1 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 font-bold text-slate-700 dark:text-slate-200 text-sm transition disabled:opacity-50 disabled:cursor-not-allowed"
+                            >
+                              -
+                            </button>
+                            <span className="px-3 py-1 font-bold text-sm min-w-8 text-center text-slate-900 dark:text-white select-none">
+                              {currentQty}
+                            </span>
+                            <button
+                              type="button"
+                              onClick={() =>
+                                handleSingleQuantityChange(variant.id, 1)
+                              }
+                              className="px-3 py-1 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 font-bold text-slate-700 dark:text-slate-200 text-sm transition"
+                            >
+                              +
+                            </button>
+                          </div>
+
+                          <span className="text-sm font-bold text-slate-900 dark:text-white whitespace-nowrap min-w-20 text-right">
+                            {variant.price * currentQty}.00৳
                           </span>
                         </div>
                       </div>
-
-                      <div className="flex items-center justify-between w-full sm:w-auto gap-4 pl-7 sm:pl-0">
-                        <div
-                          className="flex items-center border border-slate-300 dark:border-slate-600 rounded-lg overflow-hidden bg-white dark:bg-slate-900"
-                          onClick={(e) => e.stopPropagation()}
-                        >
-                          <button
-                            type="button"
-                            disabled={isSelected && singleQuantity <= 1}
-                            onClick={() =>
-                              handleSingleQuantityChange(variant.id, -1)
-                            }
-                            className="px-3 py-1 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 font-bold text-slate-700 dark:text-slate-200 text-sm transition disabled:opacity-50 disabled:cursor-not-allowed"
-                          >
-                            -
-                          </button>
-                          <span className="px-3 py-1 font-bold text-sm min-w-8 text-center text-slate-900 dark:text-white select-none">
-                            {currentQty}
-                          </span>
-                          <button
-                            type="button"
-                            onClick={() =>
-                              handleSingleQuantityChange(variant.id, 1)
-                            }
-                            className="px-3 py-1 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 font-bold text-slate-700 dark:text-slate-200 text-sm transition"
-                          >
-                            +
-                          </button>
-                        </div>
-
-                        <span className="text-sm font-bold text-slate-900 dark:text-white whitespace-nowrap min-w-20 text-right">
-                          {variant.price * currentQty}.00৳
-                        </span>
-                      </div>
-                    </div>
-                  );
-                })
-              ) : (
-                <div className="p-4 flex flex-col sm:flex-row items-start sm:items-center justify-between bg-emerald-50/60 dark:bg-slate-800/90 border-l-4 border-brand-green gap-4">
-                  <div className="flex items-center gap-3">
-                    <img
-                      src={mainProduct.image}
-                      alt={mainProduct.name}
-                      className="w-12 h-12 rounded-md object-cover border shrink-0"
-                    />
-                    <div>
-                      <span className="text-sm font-semibold block">
-                        {mainProduct.name}
-                      </span>
-                      <span className="text-xs text-slate-500">
-                        একক মূল্য: {mainProduct.price}.00৳
-                      </span>
-                    </div>
-                  </div>
-
-                  <div className="flex items-center justify-between w-full sm:w-auto gap-4 pl-7 sm:pl-0">
-                    <div className="flex items-center border border-slate-300 dark:border-slate-600 rounded-lg overflow-hidden bg-white dark:bg-slate-900">
-                      <button
-                        type="button"
-                        disabled={singleQuantity <= 1}
-                        onClick={() =>
-                          setSingleQuantity((prev) => Math.max(1, prev - 1))
-                        }
-                        className="px-3 py-1 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 font-bold text-slate-700 dark:text-slate-200 text-sm transition disabled:opacity-50"
-                      >
-                        -
-                      </button>
-                      <span className="px-3 py-1 font-bold text-sm min-w-8 text-center text-slate-900 dark:text-white">
-                        {singleQuantity}
-                      </span>
-                      <button
-                        type="button"
-                        onClick={() => setSingleQuantity((prev) => prev + 1)}
-                        className="px-3 py-1 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 font-bold text-slate-700 dark:text-slate-200 text-sm transition"
-                      >
-                        +
-                      </button>
-                    </div>
-
-                    <span className="text-sm font-bold text-slate-900 dark:text-white whitespace-nowrap min-w-20 text-right">
-                      {mainProduct.price * singleQuantity}.00৳
-                    </span>
-                  </div>
-                </div>
-              )}
+                    );
+                  })
+                : null}
             </div>
           </div>
 
@@ -527,37 +412,16 @@ export const Checkout = ({ selectedProduct }) => {
                   </div>
 
                   <div className="py-2 border-b border-dashed border-slate-200 dark:border-slate-700 space-y-2">
-                    {isCartMode ? (
-                      cartItems.map((item) => (
-                        <div
-                          key={item.variantId || item.id}
-                          className="flex items-center justify-between text-xs font-medium"
-                        >
-                          <span className="text-slate-800 dark:text-slate-200">
-                            {item.name}{" "}
-                            {item.variantTitle ? `(${item.variantTitle})` : ""}{" "}
-                            × {item.quantity}
-                          </span>
-                          <span className="font-bold">
-                            {item.price * item.quantity}.00৳
-                          </span>
-                        </div>
-                      ))
-                    ) : (
-                      <div className="flex items-center justify-between text-xs font-medium">
-                        <span className="text-slate-800 dark:text-slate-200">
-                          {truncateText(mainProduct.name, 50)}{" "}
-                          {selectedVariant ? `(${selectedVariant.title})` : ""}{" "}
-                          × {singleQuantity}
-                        </span>
-                        <span className="font-bold">
-                          {(selectedVariant
-                            ? selectedVariant.price
-                            : mainProduct.price) * singleQuantity}
-                          .00৳
-                        </span>
-                      </div>
-                    )}
+                    <div className="flex items-center justify-between text-xs font-medium">
+                      <span className="text-slate-800 dark:text-slate-200">
+                        {truncateText(mainProduct.name, 50)}{" "}
+                        {selectedVariant ? `(${selectedVariant.title})` : ""} ×{" "}
+                        {singleQuantity}
+                      </span>
+                      <span className="font-bold">
+                        {unitPrice * singleQuantity}.00৳
+                      </span>
+                    </div>
                   </div>
 
                   <div className="py-3 border-b border-slate-200 dark:border-slate-700 flex justify-between text-sm">
@@ -599,6 +463,22 @@ export const Checkout = ({ selectedProduct }) => {
                         : `🔒 অর্ডার কনফার্ম করুন ${totalAmount}.00৳`}
                     </span>
                   </button>
+
+                  {/* হোয়াটসঅ্যাপে অর্ডার অপশন */}
+                  <div className="mt-4 pt-4 border-t border-slate-200 dark:border-slate-700 text-center">
+                    <p className="text-xs text-slate-500 dark:text-slate-400 mb-2">
+                      অথবা সরাসরি কথা বলে অর্ডার করতে
+                    </p>
+                    <a
+                      href="https://wa.me/+8801778155184?text=হ্যালো%20VitalCareBD,%20আমি%20ম্যাকা%20কফি%20অর্ডার%20করতে%20চাই"
+                      target="_blank"
+                      rel="noreferrer"
+                      className="w-full py-3 px-4 rounded-xl bg-[#25D366] hover:bg-[#20ba59] text-white font-bold text-sm transition flex items-center justify-center gap-2 shadow-md"
+                    >
+                      <IconBrandWhatsapp size={20} />
+                      <span>হোয়াটসঅ্যাপে অর্ডার করুন</span>
+                    </a>
+                  </div>
                 </div>
               </div>
             </div>
