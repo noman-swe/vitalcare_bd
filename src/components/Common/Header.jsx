@@ -1,7 +1,6 @@
 import { useState, useEffect } from "react";
 import { useTheme } from "../../context/ThemeContext";
-import { LockIcon } from "../../icons/Icons";
-import { IconMoon, IconPhone, IconSun } from "@tabler/icons-react";
+import { IconLock, IconMoon, IconPhone, IconSun } from "@tabler/icons-react";
 import { navLinks } from "../../data/common";
 
 export const TopBar = () => {
@@ -9,7 +8,7 @@ export const TopBar = () => {
     <div className="bg-brand-teal text-white text-xs sm:text-sm py-1.5 px-4">
       <div className="max-w-7xl mx-auto flex items-center justify-between">
         <div className="flex items-center gap-2">
-          <LockIcon size={16} />
+          <IconLock size={16} />
           <span className="font-medium">
             ১০০% গোপনীয় ও সংরক্ষিত প্যাকেজিং (বক্সের বাইরে কোনো পণ্যের নাম
             থাকবে না)

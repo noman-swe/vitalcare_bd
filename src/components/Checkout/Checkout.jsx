@@ -5,8 +5,7 @@ import { SectionNameBadge } from "../UI/Badges";
 import { IconBrandWhatsapp } from "@tabler/icons-react";
 import { useCart } from "../../context/CartContext";
 
-const GOOGLE_SHEET_API_URL =
-  "https://script.google.com/macros/s/AKfycbzRLIdKiHaUTM2vk_okh7-oqYutTNrMzQw4lGgNPb0TQ2PHOaVnDkMpEfo_uONnc4uc/exec";
+const GOOGLE_SHEET_API_URL = import.meta.env.VITE_GOOGLE_SHEET_API_URL;
 
 export const Checkout = ({ selectedProduct }) => {
   const { triggerOrderSuccess } = useCart();
@@ -137,7 +136,7 @@ ${formData.address || "[এখানে আপনার ঠিকানা ল�
 
     setIsSubmitting(true);
 
-    const fullPhoneNumber = `+880${formData.phone}`;
+    const fullPhoneNumber = `+880-${formData.phone}`;
 
     const orderItems = [
       {

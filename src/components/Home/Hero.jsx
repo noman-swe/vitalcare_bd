@@ -1,5 +1,5 @@
-import { ShoppingCartIcon, SpaIcon } from "../../icons/Icons";
-import { productsData } from "../../data/products"; // ১. productsData ইমপোর্ট করা হলো
+import { IconChecks, IconShoppingCart } from "@tabler/icons-react";
+import { productsData } from "../../data/products";
 
 export const Hero = () => {
   // প্রডাক্ট ডেটা থেকে প্রথম প্রোডাক্টটি (ম্যাকা কফি) ফেচ করা হচ্ছে
@@ -20,7 +20,7 @@ export const Hero = () => {
         text: "অর্ডার করুন",
         href: "#checkout-section",
         primary: true,
-        icon: <ShoppingCartIcon size={20} />,
+        icon: <IconShoppingCart size={20} />,
       },
       {
         text: "বিস্তারিত দেখুন",
@@ -62,7 +62,7 @@ export const Hero = () => {
           <div className="lg:col-span-7 text-center lg:text-left">
             {/* Top Badge */}
             <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-brand-teal/10 dark:bg-brand-teal/30 border border-brand-teal/20 dark:border-brand-teal/50 text-brand-teal dark:text-brand-green text-xs sm:text-sm font-semibold mb-6">
-              <SpaIcon size={16} />
+              <IconChecks size={16} />
               <span className="w-42 sm:w-auto">{heroData.topBadgeText}</span>
             </div>
 
