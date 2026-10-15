@@ -117,7 +117,7 @@ const ProductVisuals = () => {
             <button
               onClick={() => handleScroll("left")}
               aria-label="Previous"
-              className="absolute -left-3 top-1/2 -translate-y-1/2 z-10 w-9 h-9 rounded-full bg-white dark:bg-slate-800 shadow-md border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-200 flex items-center justify-center hover:bg-brand-green hover:text-white transition-all opacity-80 group-hover:opacity-100 sm:hidden flex"
+              className="absolute -left-3 top-1/2 -translate-y-1/2 z-10 w-9 h-9 rounded-full bg-white dark:bg-slate-800 shadow-md border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-200 items-center justify-center hover:bg-brand-green hover:text-white transition-all opacity-80 group-hover:opacity-100 sm:hidden flex"
             >
               <IconChevronLeft size={20} />
             </button>
@@ -126,7 +126,7 @@ const ProductVisuals = () => {
             <button
               onClick={() => handleScroll("right")}
               aria-label="Next"
-              className="absolute -right-3 top-1/2 -translate-y-1/2 z-10 w-9 h-9 rounded-full bg-white dark:bg-slate-800 shadow-md border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-200 flex items-center justify-center hover:bg-brand-green hover:text-white transition-all opacity-80 group-hover:opacity-100 sm:hidden flex"
+              className="absolute -right-3 top-1/2 -translate-y-1/2 z-10 w-9 h-9 rounded-full bg-white dark:bg-slate-800 shadow-md border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-200  items-center justify-center hover:bg-brand-green hover:text-white transition-all opacity-80 group-hover:opacity-100 sm:hidden flex"
             >
               <IconChevronRight size={20} />
             </button>
@@ -134,13 +134,13 @@ const ProductVisuals = () => {
             {/* Gallery Container: Horizontal scroll on mobile (flex), Normal grid on desktop (lg:grid) */}
             <div
               ref={scrollContainerRef}
-              className="flex lg:grid lg:grid-cols-2 gap-4 overflow-x-auto lg:overflow-visible overflow-y-hidden snap-x snap-mandatory py-2 px-1 [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden"
+              className="flex lg:grid lg:grid-cols-2 gap-4 overflow-x-auto lg:overflow-visible overflow-y-hidden snap-x snap-mandatory py-2 px-1 scrollbar-none [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden"
             >
               {gallery.map((item) => (
                 <div
                   key={item.id}
                   onClick={() => setSelectedImage(item.image)}
-                  className="min-w-[260px] sm:min-w-[280px] lg:min-w-full w-full snap-start p-4 rounded-2xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700/80 hover:border-brand-green/50 transition-all cursor-pointer group/card flex flex-col justify-between shadow-sm"
+                  className="min-w-65 sm:min-w-70 lg:min-w-full w-full snap-start p-4 rounded-2xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700/80 hover:border-brand-green/50 transition-all cursor-pointer group/card flex flex-col justify-between shadow-sm"
                 >
                   <div className="h-48 sm:h-44 bg-white dark:bg-slate-900 rounded-xl overflow-hidden relative mb-3 border border-slate-100 dark:border-slate-800">
                     <img
