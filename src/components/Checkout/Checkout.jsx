@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { productsData } from "../../data/products";
 import { truncateText } from "../../utils/utils";
 import { SectionNameBadge } from "../UI/Badges";
@@ -6,6 +6,8 @@ import { IconBrandWhatsapp } from "@tabler/icons-react";
 import { useCart } from "../../context/CartContext";
 
 const GOOGLE_SHEET_API_URL = import.meta.env.VITE_GOOGLE_SHEET_API_URL;
+const VITE_UNCONFIRMED_CLIENT_GOOGLE_SHEET_API_URL = import.meta.env
+  .VITE_UNCONFIRMED_CLIENT_GOOGLE_SHEET_API_URL;
 
 export const Checkout = ({ selectedProduct }) => {
   const { triggerOrderSuccess } = useCart();
@@ -25,10 +27,11 @@ export const Checkout = ({ selectedProduct }) => {
       };
     }),
   };
+
   // 🚀 হ্যাশ লিংক থাকলে অটো-স্ক্রল হ্যান্ডলার
   useEffect(() => {
-    if (window.location.hash === "#checkout-section") {
-      const checkoutElem = document.getElementById("checkout-section");
+    if (window.location.hash === "#checkout") {
+      const checkoutElem = document.getElementById("checkout");
       if (checkoutElem) {
         setTimeout(() => {
           checkoutElem.scrollIntoView({ behavior: "smooth" });
@@ -37,11 +40,20 @@ export const Checkout = ({ selectedProduct }) => {
     }
   }, []);
 
-  // প্রথমে একটি ডিফল্ট ভ্যারিয়েন্ট সিলেক্টেড রাখা হলো
-  const [variantId, setVariantId] = useState(
+  const [packType, setPackType] = useState("single");
+  const [singleVariantId, setSingleVariantId] = useState(
     mainProduct?.variants?.[0]?.id || null,
   );
   const [singleQuantity, setSingleQuantity] = useState(1);
+
+  const [bothQuantities, setBothQuantities] = useState(() => {
+    const initial = {};
+    mainProduct?.variants?.forEach((v) => {
+      initial[v.id] = 1;
+    });
+    return initial;
+  });
+
   const [deliveryLocation, setDeliveryLocation] = useState("inside_dhaka");
   const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -53,35 +65,116 @@ export const Checkout = ({ selectedProduct }) => {
   });
 
   const [phoneError, setPhoneError] = useState("");
-
-  // variantId যদি null হয়, তবে selectedVariant ও null হবে (কোনো রেডিও সিলেক্টেড থাকবে না)
-  const selectedVariant = variantId
-    ? mainProduct?.variants?.find((v) => v.id === variantId) || null
-    : null;
+  const debounceTimerRef = useRef(null);
 
   const handleSingleQuantityChange = (targetVariantId, delta) => {
-    if (selectedVariant?.id !== targetVariantId) {
-      setVariantId(targetVariantId);
+    if (singleVariantId !== targetVariantId) {
+      setSingleVariantId(targetVariantId);
       setSingleQuantity(Math.max(1, 1 + delta));
     } else {
       setSingleQuantity((prevQty) => Math.max(1, prevQty + delta));
     }
   };
 
+  const handleBothQuantityChange = (variantId, delta) => {
+    setBothQuantities((prev) => ({
+      ...prev,
+      [variantId]: Math.max(1, (prev[variantId] || 1) + delta),
+    }));
+  };
+
+  const getSelectedOrderItems = () => {
+    if (packType === "single") {
+      const variant = mainProduct?.variants?.find(
+        (v) => v.id === singleVariantId,
+      );
+      if (!variant) return [];
+      return [
+        {
+          id: variant.id,
+          title: variant.title,
+          price: variant.price,
+          quantity: singleQuantity,
+          totalPrice: variant.price * singleQuantity,
+        },
+      ];
+    } else {
+      return (
+        mainProduct?.variants?.map((variant) => {
+          const qty = bothQuantities[variant.id] || 1;
+          return {
+            id: variant.id,
+            title: variant.title,
+            price: variant.price,
+            quantity: qty,
+            totalPrice: variant.price * qty,
+          };
+        }) || []
+      );
+    }
+  };
+
+  const selectedItems = getSelectedOrderItems();
   const deliveryCharge = deliveryLocation === "inside_dhaka" ? 60 : 120;
   const deliveryAreaText =
     deliveryLocation === "inside_dhaka"
       ? "ঢাকার ভেতরে (৳৬০)"
       : "ঢাকার বাইরে (৳১২০)";
 
-  const unitPrice = selectedVariant ? Number(selectedVariant.price) : 0;
-  const subtotal = unitPrice * singleQuantity;
+  const subtotal = selectedItems.reduce(
+    (acc, item) => acc + item.totalPrice,
+    0,
+  );
   const totalAmount = subtotal + deliveryCharge;
+
+  // 🔄 অটো-লিড ব্যাকএন্ডে পাঠানোর ফাংশন (unconfirmed-client)
+  const sendUnconfirmedLead = async (currentForm) => {
+    const bdPhoneRegex = /^01[3-9]\d{8}$/;
+    if (!currentForm.phone || !bdPhoneRegex.test(currentForm.phone)) return;
+
+    // const fullPhoneNumber = `${currentForm.phone}`;
+    const orderItems = selectedItems.map((item) => ({
+      name: mainProduct.name,
+      variantTitle: item.title,
+      quantity: item.quantity,
+      price: item.price,
+    }));
+
+    const payload = {
+      name: currentForm.name,
+      phone: currentForm.phone,
+      address: currentForm.address,
+      items: orderItems,
+      orderStatus: "unconfirmed-client",
+    };
+
+    try {
+      await fetch(VITE_UNCONFIRMED_CLIENT_GOOGLE_SHEET_API_URL, {
+        method: "POST",
+        headers: { "Content-Type": "text/plain;charset=utf-8" },
+        body: JSON.stringify(payload),
+      });
+    } catch (error) {
+      console.error("Auto save lead error:", error);
+    }
+  };
+
+  // ⌨️ ইনপুট টাইপিং এর সাথে সাথে ২ সেকেন্ডের Debounce সেটিং
+  const handleInputChange = (field, value) => {
+    const updatedForm = { ...formData, [field]: value };
+    setFormData(updatedForm);
+
+    if (debounceTimerRef.current) clearTimeout(debounceTimerRef.current);
+
+    debounceTimerRef.current = setTimeout(() => {
+      sendUnconfirmedLead(updatedForm);
+    }, 2000);
+  };
 
   const handlePhoneChange = (e) => {
     const value = e.target.value.replace(/\D/g, "");
     if (value.length <= 11) {
-      setFormData({ ...formData, phone: value });
+      handleInputChange("phone", value);
       if (phoneError) setPhoneError("");
     }
   };
@@ -103,30 +196,109 @@ export const Checkout = ({ selectedProduct }) => {
     return true;
   };
 
+  const productDetailsString = selectedItems
+    .map(
+      (item) =>
+        `- ${mainProduct.name} (${item.title}) × ${item.quantity}টি = ৳${item.totalPrice}`,
+    )
+    .join("\n");
+
   const whatsappRawMessage = `হ্যালো VitalCareBD, আমি সরাসরি কথা বলে অর্ডার করতে চাই।
 
 *পণ্য:* ${mainProduct.name}
-*প্যাকেজ:* ${selectedVariant?.title || "নির্দিষ্ট করা হয়নি"}
-*পরিমাণ:* ${singleQuantity}টি
-*মূল্য (সাবটোটাল):* ৳${subtotal}
+*অর্ডার ধরণ:* ${packType === "single" ? "একক প্যাক" : "উভয় প্যাক কম্বো"}
+*প্যাকেজ বিবরণ:*
+${productDetailsString}
+
+*সাবটোটাল:* ৳${subtotal}
 *ডেলিভারি এরিয়া:* ${deliveryAreaText}
 *মোট খরচ:* ৳${totalAmount}
 
 *আমার তথ্য:*
-- নাম:
+- নাম: 
 ${formData.name || "[এখানে আপনার নাম লিখুন]"}
 - মোবাইল: 
 ${formData.phone || "[এখানে আপনার নম্বর লিখুন]"}
 - ঠিকানা: 
 ${formData.address || "[এখানে আপনার ঠিকানা লিখুন]"}`;
 
-  const whatsappUrl = `https://wa.me/+8801778155184?text=${encodeURIComponent(whatsappRawMessage)}`;
+  const whatsappUrl = `https://wa.me/+8801778155184?text=${encodeURIComponent(
+    whatsappRawMessage,
+  )}`;
 
+  // 🔒 ফাইনাল অর্ডার কনফার্ম সাবমিট (confirmed)
+  // const handleSubmit = async (e) => {
+  //   e.preventDefault();
+
+  //   if (selectedItems.length === 0) {
+  //     alert("দয়া করে একটি প্যাকেজ নির্বাচন করুন।");
+  //     return;
+  //   }
+
+  //   if (!validatePhone()) {
+  //     return;
+  //   }
+
+  //   if (debounceTimerRef.current) clearTimeout(debounceTimerRef.current);
+  //   setIsSubmitting(true);
+
+  //   // const fullPhoneNumber = `+${formData.phone}`;
+  //   const orderItems = selectedItems.map((item) => ({
+  //     name: mainProduct.name,
+  //     variantTitle: item.title,
+  //     quantity: item.quantity,
+  //     price: item.price,
+  //   }));
+
+  //   const payload = {
+  //     ...formData,
+  //     items: orderItems,
+  //     orderStatus: "confirmed",
+  //   };
+
+  //   try {
+  //     const response = await fetch(GOOGLE_SHEET_API_URL, {
+  //       method: "POST",
+  //       headers: { "Content-Type": "text/plain;charset=utf-8" },
+  //       body: JSON.stringify(payload),
+  //     });
+
+  //     const result = await response.json();
+
+  //     if (result.result === "success") {
+  //       triggerOrderSuccess(result.orderId);
+
+  //       setSingleQuantity(1);
+  //       setSingleVariantId(mainProduct?.variants?.[0]?.id || null);
+  //       const resetBoth = {};
+  //       mainProduct?.variants?.forEach((v) => {
+  //         resetBoth[v.id] = 1;
+  //       });
+  //       setBothQuantities(resetBoth);
+  //       setFormData({
+  //         name: "",
+  //         address: "",
+  //         phone: "",
+  //         note: "",
+  //       });
+  //       setPhoneError("");
+  //     } else {
+  //       alert("অর্ডার প্রসেস করতে সমস্যা হয়েছে। আবার চেষ্টা করুন।");
+  //     }
+  //   } catch (error) {
+  //     console.error("Error submitting order:", error);
+  //     alert("নেটওয়ার্ক সমস্যা! পরে আবার চেষ্টা করুন।");
+  //   } finally {
+  //     setIsSubmitting(false);
+  //   }
+  // };
+
+  // 🔒 ফাইনাল অর্ডার কনফার্ম সাবমিট (confirmed)
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    if (!selectedVariant) {
-      alert("দয়া করে যেকোনো একটি প্রোডাক্ট প্যাকেজ নির্বাচন করুন।");
+    if (selectedItems.length === 0) {
+      alert("দয়া করে একটি প্যাকেজ নির্বাচন করুন।");
       return;
     }
 
@@ -134,27 +306,20 @@ ${formData.address || "[এখানে আপনার ঠিকানা ল�
       return;
     }
 
+    if (debounceTimerRef.current) clearTimeout(debounceTimerRef.current);
     setIsSubmitting(true);
 
-    const fullPhoneNumber = `+880-${formData.phone}`;
-
-    const orderItems = [
-      {
-        name: mainProduct.name,
-        variantTitle: selectedVariant?.title || "",
-        quantity: singleQuantity,
-        price: unitPrice,
-      },
-    ];
+    const orderItems = selectedItems.map((item) => ({
+      name: mainProduct.name,
+      variantTitle: item.title,
+      quantity: item.quantity,
+      price: item.price,
+    }));
 
     const payload = {
       ...formData,
-      phone: fullPhoneNumber,
-      deliveryLocation,
-      subtotal,
-      deliveryCharge,
-      totalAmount,
       items: orderItems,
+      orderStatus: "confirmed",
     };
 
     try {
@@ -167,11 +332,26 @@ ${formData.address || "[এখানে আপনার ঠিকানা ল�
       const result = await response.json();
 
       if (result.result === "success") {
+        // 🗑️ অর্ডার কনফার্ম হলে আনকনফার্মড শিট থেকে এই নাম্বারের ডাটা রিমুভ করার জন্য রিকোয়েস্ট পাঠানো
+        try {
+          await fetch(VITE_UNCONFIRMED_CLIENT_GOOGLE_SHEET_API_URL, {
+            method: "POST",
+            headers: { "Content-Type": "text/plain;charset=utf-8" },
+            body: JSON.stringify({ action: "delete", phone: formData.phone }),
+          });
+        } catch (delErr) {
+          console.error("Failed to delete unconfirmed lead:", delErr);
+        }
+
         triggerOrderSuccess(result.orderId);
 
-        // সফলভাবে অর্ডার জমা দেওয়ার পর স্টেট রিসেট এবং ভ্যারিয়েন্ট null করে দেওয়া হলো
         setSingleQuantity(1);
-        setVariantId(null); // এখানে null করার ফলে সব রেডিও বাটন আনসিলেক্টেড হয়ে যাবে
+        setSingleVariantId(mainProduct?.variants?.[0]?.id || null);
+        const resetBoth = {};
+        mainProduct?.variants?.forEach((v) => {
+          resetBoth[v.id] = 1;
+        });
+        setBothQuantities(resetBoth);
         setFormData({
           name: "",
           address: "",
@@ -192,7 +372,7 @@ ${formData.address || "[এখানে আপনার ঠিকানা ল�
 
   return (
     <section
-      id="checkout-section"
+      id="checkout"
       className="py-16 bg-white dark:bg-[#0B1322] border-t border-slate-200 dark:border-slate-800 text-slate-800 dark:text-slate-100 relative"
     >
       <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -206,29 +386,65 @@ ${formData.address || "[এখানে আপনার ঠিকানা ল�
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-8">
-          {/* Product Variants Selection */}
           <div>
-            <h3 className="text-base font-bold mb-3 text-slate-800 dark:text-slate-200">
-              প্রোডাক্ট প্যাকেজ ও পরিমাণ নির্বাচন করুন
-            </h3>
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between mb-3 gap-3">
+              <h3 className="text-base font-bold text-slate-800 dark:text-slate-200">
+                প্রোডাক্ট প্যাকেজ ও পরিমাণ নির্বাচন করুন
+              </h3>
+
+              <div className="inline-flex p-1 bg-slate-200 dark:bg-slate-800 rounded-xl self-start sm:self-auto border border-slate-300 dark:border-slate-700">
+                <button
+                  type="button"
+                  onClick={() => setPackType("single")}
+                  className={`px-4 py-1.5 text-xs sm:text-sm font-bold rounded-lg transition ${
+                    packType === "single"
+                      ? "bg-brand-green text-slate-950 shadow-md"
+                      : "text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white"
+                  }`}
+                >
+                  একক প্যাক (Ekok Pack)
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setPackType("both")}
+                  className={`px-4 py-1.5 text-xs sm:text-sm font-bold rounded-lg transition ${
+                    packType === "both"
+                      ? "bg-brand-green text-slate-950 shadow-md"
+                      : "text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white"
+                  }`}
+                >
+                  উভয় প্যাক (Both Pack)
+                </button>
+              </div>
+            </div>
 
             <div className="border border-slate-200 dark:border-slate-700 rounded-xl divide-y divide-slate-200 dark:divide-slate-700 bg-slate-50/50 dark:bg-slate-800/40 overflow-hidden">
               {mainProduct?.variants && mainProduct.variants.length > 0
                 ? mainProduct.variants.map((variant) => {
-                    const isSelected = selectedVariant?.id === variant.id;
-                    const currentQty = isSelected ? singleQuantity : 1;
+                    const isSingleMode = packType === "single";
+                    const isSelectedInSingle =
+                      isSingleMode && singleVariantId === variant.id;
+
+                    const isChecked = isSingleMode ? isSelectedInSingle : true;
+                    const currentQty = isSingleMode
+                      ? isSelectedInSingle
+                        ? singleQuantity
+                        : 1
+                      : bothQuantities[variant.id] || 1;
 
                     return (
                       <div
                         key={variant.id}
                         onClick={() => {
-                          if (!isSelected) {
-                            setVariantId(variant.id);
+                          if (isSingleMode && !isSelectedInSingle) {
+                            setSingleVariantId(variant.id);
                             setSingleQuantity(1);
                           }
                         }}
-                        className={`flex flex-col sm:flex-row items-start sm:items-center justify-between p-4 cursor-pointer transition gap-4 ${
-                          isSelected
+                        className={`flex flex-col sm:flex-row items-start sm:items-center justify-between p-4 transition gap-4 ${
+                          isSingleMode ? "cursor-pointer" : ""
+                        } ${
+                          isChecked
                             ? "bg-emerald-50/60 dark:bg-slate-800/90 border-l-4 border-brand-green shadow-sm"
                             : "hover:bg-slate-100 dark:hover:bg-slate-800/50"
                         }`}
@@ -236,11 +452,17 @@ ${formData.address || "[এখানে আপনার ঠিকানা ল�
                         <div className="flex items-center gap-3 sm:gap-4 flex-1">
                           <input
                             type="radio"
-                            name="quickOrderVariant"
-                            checked={isSelected}
+                            name={
+                              isSingleMode
+                                ? "quickOrderVariant"
+                                : `quickOrderVariant_${variant.id}`
+                            }
+                            checked={isChecked}
                             onChange={() => {
-                              setVariantId(variant.id);
-                              setSingleQuantity(1);
+                              if (isSingleMode) {
+                                setSingleVariantId(variant.id);
+                                setSingleQuantity(1);
+                              }
                             }}
                             className="accent-brand-green h-4 w-4 shrink-0 cursor-pointer"
                           />
@@ -274,11 +496,15 @@ ${formData.address || "[এখানে আপনার ঠিকানা ল�
                           >
                             <button
                               type="button"
-                              disabled={isSelected && singleQuantity <= 1}
-                              onClick={() =>
-                                handleSingleQuantityChange(variant.id, -1)
-                              }
-                              className="px-3 py-1 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 font-bold text-slate-700 dark:text-slate-200 text-sm transition disabled:opacity-50 disabled:cursor-not-allowed"
+                              disabled={isSingleMode && !isSelectedInSingle}
+                              onClick={() => {
+                                if (isSingleMode) {
+                                  handleSingleQuantityChange(variant.id, -1);
+                                } else {
+                                  handleBothQuantityChange(variant.id, -1);
+                                }
+                              }}
+                              className="px-3 py-1 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 font-bold text-slate-700 dark:text-slate-200 text-sm transition disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
                             >
                               -
                             </button>
@@ -287,10 +513,15 @@ ${formData.address || "[এখানে আপনার ঠিকানা ল�
                             </span>
                             <button
                               type="button"
-                              onClick={() =>
-                                handleSingleQuantityChange(variant.id, 1)
-                              }
-                              className="px-3 py-1 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 font-bold text-slate-700 dark:text-slate-200 text-sm transition"
+                              disabled={isSingleMode && !isSelectedInSingle}
+                              onClick={() => {
+                                if (isSingleMode) {
+                                  handleSingleQuantityChange(variant.id, 1);
+                                } else {
+                                  handleBothQuantityChange(variant.id, 1);
+                                }
+                              }}
+                              className="px-3 py-1 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 font-bold text-slate-700 dark:text-slate-200 text-sm transition disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
                             >
                               +
                             </button>
@@ -307,7 +538,6 @@ ${formData.address || "[এখানে আপনার ঠিকানা ল�
             </div>
           </div>
 
-          {/* Billing details & Summary */}
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
             <div className="lg:col-span-7 space-y-6">
               <div>
@@ -320,13 +550,10 @@ ${formData.address || "[এখানে আপনার ঠিকানা ল�
                     required
                     placeholder="আপনার নাম *"
                     value={formData.name}
-                    onChange={(e) =>
-                      setFormData({ ...formData, name: e.target.value })
-                    }
+                    onChange={(e) => handleInputChange("name", e.target.value)}
                     className="w-full px-4 py-3 rounded-lg bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 text-sm focus:outline-none focus:border-brand-green dark:text-white"
                   />
 
-                  {/* Phone Input */}
                   <div>
                     <div
                       className={`flex items-center rounded-lg bg-white dark:bg-slate-900 border ${
@@ -359,7 +586,7 @@ ${formData.address || "[এখানে আপনার ঠিকানা ল�
                     placeholder="আপনার ঠিকানা (বাড়ি নং, রোড, থানা, জেলা) *"
                     value={formData.address}
                     onChange={(e) =>
-                      setFormData({ ...formData, address: e.target.value })
+                      handleInputChange("address", e.target.value)
                     }
                     className="w-full px-4 py-3 rounded-lg bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 text-sm focus:outline-none focus:border-brand-green dark:text-white"
                   />
@@ -368,15 +595,12 @@ ${formData.address || "[এখানে আপনার ঠিকানা ল�
                     rows={3}
                     placeholder="আপনার বিশেষ কোনো মতামত বা নির্দেশনা থাকলে লিখুন (ঐচ্ছিক)"
                     value={formData.note}
-                    onChange={(e) =>
-                      setFormData({ ...formData, note: e.target.value })
-                    }
+                    onChange={(e) => handleInputChange("note", e.target.value)}
                     className="w-full px-4 py-3 rounded-lg bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 text-sm focus:outline-none focus:border-brand-green dark:text-white resize-none"
                   ></textarea>
                 </div>
               </div>
 
-              {/* Delivery Area */}
               <div>
                 <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-2">
                   ডেলিভারি এরিয়া সিলেক্ট করুন
@@ -433,7 +657,6 @@ ${formData.address || "[এখানে আপনার ঠিকানা ল�
               </div>
             </div>
 
-            {/* Right: Order Summary */}
             <div className="lg:col-span-5 space-y-6">
               <div>
                 <h3 className="text-base font-bold mb-3 text-slate-800 dark:text-slate-200">
@@ -446,16 +669,20 @@ ${formData.address || "[এখানে আপনার ঠিকানা ল�
                   </div>
 
                   <div className="py-2 border-b border-dashed border-slate-200 dark:border-slate-700 space-y-2">
-                    <div className="flex items-center justify-between text-xs font-medium">
-                      <span className="text-slate-800 dark:text-slate-200">
-                        {selectedVariant
-                          ? `${truncateText(mainProduct.name, 50)} (${selectedVariant.title}) × ${singleQuantity}`
-                          : "কোনো প্যাকেজ নির্বাচন করা হয়নি"}
-                      </span>
-                      <span className="font-bold">
-                        {unitPrice * singleQuantity}.00৳
-                      </span>
-                    </div>
+                    {selectedItems.map((item) => (
+                      <div
+                        key={item.id}
+                        className="flex items-center justify-between text-xs font-medium py-1"
+                      >
+                        <span className="text-slate-800 dark:text-slate-200 pr-2">
+                          {truncateText(mainProduct.name, 25)} ({item.title}) ×{" "}
+                          {item.quantity}
+                        </span>
+                        <span className="font-bold whitespace-nowrap">
+                          {item.totalPrice}.00৳
+                        </span>
+                      </div>
+                    ))}
                   </div>
 
                   <div className="py-3 border-b border-slate-200 dark:border-slate-700 flex justify-between text-sm">
@@ -498,7 +725,6 @@ ${formData.address || "[এখানে আপনার ঠিকানা ল�
                     </span>
                   </button>
 
-                  {/* হোয়াটসঅ্যাপে অর্ডার অপশন */}
                   <div className="mt-4 pt-4 border-t border-slate-200 dark:border-slate-700 text-center">
                     <p className="text-xs text-slate-500 dark:text-slate-400 mb-2">
                       অথবা সরাসরি কথা বলে অর্ডার করতে
