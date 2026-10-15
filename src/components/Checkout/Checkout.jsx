@@ -3,16 +3,17 @@ import { productsData } from "../../data/products";
 import { truncateText } from "../../utils/utils";
 import { SectionNameBadge } from "../UI/Badges";
 import { IconBrandWhatsapp } from "@tabler/icons-react";
+import { useCart } from "../../context/CartContext";
 
-// ⚠️ এখানে আপনার গুগল অ্যাপস স্ক্রিপ্ট ওয়েব অ্যাপ URL টি বসান
 const GOOGLE_SHEET_API_URL =
   "https://script.google.com/macros/s/AKfycbzRLIdKiHaUTM2vk_okh7-oqYutTNrMzQw4lGgNPb0TQ2PHOaVnDkMpEfo_uONnc4uc/exec";
 
 export const Checkout = ({ selectedProduct }) => {
+  const { triggerOrderSuccess } = useCart();
+
   const rawProduct = selectedProduct || productsData[0];
   const discountPercent = rawProduct.discountPercentage || 0;
 
-  // ডাইনামিক্যালি ভ্যারিয়েন্টগুলোতে price ক্যালকুলেট করে যুক্ত করা হচ্ছে
   const mainProduct = {
     ...rawProduct,
     variants: rawProduct.variants.map((v) => {
@@ -26,6 +27,7 @@ export const Checkout = ({ selectedProduct }) => {
     }),
   };
 
+  // প্রথমে একটি ডিফল্ট ভ্যারিয়েন্ট সিলেক্টেড রাখা হলো
   const [variantId, setVariantId] = useState(
     mainProduct?.variants?.[0]?.id || null,
   );
@@ -42,10 +44,10 @@ export const Checkout = ({ selectedProduct }) => {
 
   const [phoneError, setPhoneError] = useState("");
 
-  const selectedVariant =
-    mainProduct?.variants?.find((v) => v.id === variantId) ||
-    mainProduct?.variants?.[0] ||
-    null;
+  // variantId যদি null হয়, তবে selectedVariant ও null হবে (কোনো রেডিও সিলেক্টেড থাকবে না)
+  const selectedVariant = variantId
+    ? mainProduct?.variants?.find((v) => v.id === variantId) || null
+    : null;
 
   const handleSingleQuantityChange = (targetVariantId, delta) => {
     if (selectedVariant?.id !== targetVariantId) {
@@ -57,12 +59,15 @@ export const Checkout = ({ selectedProduct }) => {
   };
 
   const deliveryCharge = deliveryLocation === "inside_dhaka" ? 60 : 120;
+  const deliveryAreaText =
+    deliveryLocation === "inside_dhaka"
+      ? "ঢাকার ভেতরে (৳৬০)"
+      : "ঢাকার বাইরে (৳১২০)";
 
   const unitPrice = selectedVariant ? Number(selectedVariant.price) : 0;
   const subtotal = unitPrice * singleQuantity;
   const totalAmount = subtotal + deliveryCharge;
 
-  // মোবাইল নম্বর হ্যান্ডলার
   const handlePhoneChange = (e) => {
     const value = e.target.value.replace(/\D/g, "");
     if (value.length <= 11) {
@@ -71,7 +76,6 @@ export const Checkout = ({ selectedProduct }) => {
     }
   };
 
-  // ফোন নম্বর ভ্যালিডেশন
   const validatePhone = () => {
     const bdPhoneRegex = /^01[3-9]\d{8}$/;
 
@@ -89,9 +93,32 @@ export const Checkout = ({ selectedProduct }) => {
     return true;
   };
 
-  // অর্ডার সাবমিট এবং রিসেট ফাংশন
+  const whatsappRawMessage = `হ্যালো VitalCareBD, আমি সরাসরি কথা বলে অর্ডার করতে চাই।
+
+*পণ্য:* ${mainProduct.name}
+*প্যাকেজ:* ${selectedVariant?.title || "নির্দিষ্ট করা হয়নি"}
+*পরিমাণ:* ${singleQuantity}টি
+*মূল্য (সাবটোটাল):* ৳${subtotal}
+*ডেলিভারি এরিয়া:* ${deliveryAreaText}
+*মোট খরচ:* ৳${totalAmount}
+
+*আমার তথ্য:*
+- নাম:
+${formData.name || "[এখানে আপনার নাম লিখুন]"}
+- মোবাইল: 
+${formData.phone || "[এখানে আপনার নম্বর লিখুন]"}
+- ঠিকানা: 
+${formData.address || "[এখানে আপনার ঠিকানা লিখুন]"}`;
+
+  const whatsappUrl = `https://wa.me/+8801778155184?text=${encodeURIComponent(whatsappRawMessage)}`;
+
   const handleSubmit = async (e) => {
     e.preventDefault();
+
+    if (!selectedVariant) {
+      alert("দয়া করে যেকোনো একটি প্রোডাক্ট প্যাকেজ নির্বাচন করুন।");
+      return;
+    }
 
     if (!validatePhone()) {
       return;
@@ -130,14 +157,11 @@ export const Checkout = ({ selectedProduct }) => {
       const result = await response.json();
 
       if (result.result === "success") {
-        alert(
-          "আপনার অর্ডারটি সফলভাবে সম্পন্ন হয়েছে! অর্ডার আইডি: " +
-            result.orderId,
-        );
+        triggerOrderSuccess(result.orderId);
 
-        // স্টেট রিসেট করা হচ্ছে
+        // সফলভাবে অর্ডার জমা দেওয়ার পর স্টেট রিসেট এবং ভ্যারিয়েন্ট null করে দেওয়া হলো
         setSingleQuantity(1);
-        setVariantId(mainProduct?.variants?.[0]?.id || null);
+        setVariantId(null); // এখানে null করার ফলে সব রেডিও বাটন আনসিলেক্টেড হয়ে যাবে
         setFormData({
           name: "",
           address: "",
@@ -218,7 +242,7 @@ export const Checkout = ({ selectedProduct }) => {
                           <div>
                             <span className="text-xs sm:text-sm font-semibold text-slate-900 dark:text-white block">
                               {truncateText(
-                                `${mainProduct.name} - ${variant.title}`,
+                                `${mainProduct.name} ${variant.title}`,
                                 70,
                               )}
                             </span>
@@ -414,9 +438,9 @@ export const Checkout = ({ selectedProduct }) => {
                   <div className="py-2 border-b border-dashed border-slate-200 dark:border-slate-700 space-y-2">
                     <div className="flex items-center justify-between text-xs font-medium">
                       <span className="text-slate-800 dark:text-slate-200">
-                        {truncateText(mainProduct.name, 50)}{" "}
-                        {selectedVariant ? `(${selectedVariant.title})` : ""} ×{" "}
-                        {singleQuantity}
+                        {selectedVariant
+                          ? `${truncateText(mainProduct.name, 50)} (${selectedVariant.title}) × ${singleQuantity}`
+                          : "কোনো প্যাকেজ নির্বাচন করা হয়নি"}
                       </span>
                       <span className="font-bold">
                         {unitPrice * singleQuantity}.00৳
@@ -470,7 +494,7 @@ export const Checkout = ({ selectedProduct }) => {
                       অথবা সরাসরি কথা বলে অর্ডার করতে
                     </p>
                     <a
-                      href="https://wa.me/+8801778155184?text=হ্যালো%20VitalCareBD,%20আমি%20ম্যাকা%20কফি%20অর্ডার%20করতে%20চাই"
+                      href={whatsappUrl}
                       target="_blank"
                       rel="noreferrer"
                       className="w-full py-3 px-4 rounded-xl bg-[#25D366] hover:bg-[#20ba59] text-white font-bold text-sm transition flex items-center justify-center gap-2 shadow-md"
