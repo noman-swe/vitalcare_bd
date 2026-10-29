@@ -18,7 +18,7 @@ export const Hero = () => {
     ctaButtons: [
       {
         text: "অর্ডার করুন",
-        href: "#checkout-section",
+        href: "#checkout",
         primary: true,
         icon: <IconShoppingCart size={20} />,
       },
