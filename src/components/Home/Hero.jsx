@@ -46,7 +46,7 @@ export const Hero = () => {
 
   return (
     <section
-      id="hero"
+      id="home"
       className="relative overflow-hidden pt-12 pb-20 lg:pt-20 lg:pb-28 border-y border-slate-200 dark:border-brand-slate-border"
     >
       <div className="absolute -top-32 -left-32 w-96 h-96 rounded-full bg-brand-teal/20 blur-3xl pointer-events-none"></div>

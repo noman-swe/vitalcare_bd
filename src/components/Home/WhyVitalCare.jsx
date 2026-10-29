@@ -129,7 +129,7 @@ const WhyVitalCare = () => {
     <section
       ref={sectionRef}
       id="benefits"
-      className="py-16 bg-slate-50 dark:bg-brand-slate border-y border-slate-200 dark:border-brand-slate-border"
+      className="py-16 lg:py-32 bg-slate-50 dark:bg-brand-slate border-y border-slate-200 dark:border-brand-slate-border"
     >
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         {/* Header Section */}

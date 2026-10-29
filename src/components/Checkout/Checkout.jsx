@@ -373,7 +373,7 @@ ${formData.address || "[এখানে আপনার ঠিকানা ল�
   return (
     <section
       id="checkout"
-      className="py-16 bg-white dark:bg-[#0B1322] border-t border-slate-200 dark:border-slate-800 text-slate-800 dark:text-slate-100 relative"
+      className="py-16 lg:py-32 bg-white dark:bg-[#0B1322] border-t border-slate-200 dark:border-slate-800 text-slate-800 dark:text-slate-100 relative"
     >
       <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="text-center mb-10">

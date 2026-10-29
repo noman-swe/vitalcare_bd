@@ -1,5 +1,5 @@
 export const navLinks = [
-  { href: "#hero", label: "হোম" },
+  { href: "#home", label: "হোম" },
   { href: "#focus-product", label: "ম্যাকা কফি" },
   { href: "#benefits", label: "উপকারিতা" },
   { href: "#gallery", label: "গ্যালারি" },

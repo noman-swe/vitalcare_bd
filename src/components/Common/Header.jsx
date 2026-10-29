@@ -29,7 +29,7 @@ export const Header = () => {
   // const { totalItemsCount, setIsCartOpen } = useCart();
 
   // কোন সেকশনটি বর্তমানে একটিভ আছে তা ট্র্যাক করার জন্য স্টেট (শুরুতে #hero)
-  const [activeSection, setActiveSection] = useState("#hero");
+  const [activeSection, setActiveSection] = useState("#home");
 
   // স্ক্রল করার সময় সেকশন ডিটেক্ট করার জন্য useEffect
   useEffect(() => {
