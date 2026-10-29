@@ -65,7 +65,6 @@ export default function App() {
       <CustomerReviews />
       <ProductVisuals />
 
-      {/* <RecommendedProducts /> */}
       <Checkout
         selectedProduct={selectedProductForQuickOrder}
         setSelectedProduct={setSelectedProductForQuickOrder}

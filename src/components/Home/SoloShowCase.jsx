@@ -16,7 +16,8 @@ const SoloShowCase = () => {
           <div className="text-center mb-8">
             <SectionNameBadge badgeTitle={"পণ্যটির ভিডিও"} />
             <h2 className="text-2xl sm:text-4xl font-extrabold text-[#3b2219] dark:text-[#f4ebd0] mb-2 font-serif mt-3">
-              প্রথমে ১ মিনিটে পণ্যটি দেখে নিন
+              {/* প্রথমে ১ মিনিটে পণ্যটি দেখে নিন */}
+              প্রথমে এক নজরে পণ্যটি দেখে নিন
             </h2>
             <p className="text-sm sm:text-base text-slate-600 dark:text-slate-400 leading-relaxed lg:w-3xl mx-auto">
               {/* <p className="text-sm text-slate-600 dark:text-slate-300 leading-relaxed"> */}
@@ -32,7 +33,7 @@ const SoloShowCase = () => {
             <div className="lg:col-span-12 flex flex-col items-center justify-center">
               <div className="relative w-full max-w-xl  max-h-145 aspect-9/16 rounded-2xl overflow-hidden bg-linear-to-tr from-brand-teal to-brand-green p-1 shadow-2xl flex items-center justify-center">
                 <div className="w-full h-full rounded-xl overflow-hidden bg-slate-900 flex items-center justify-center">
-                  <iframe
+                  {/* <iframe
                     className="w-full h-full object-cover"
                     src="https://www.youtube.com/embed/dUjFhpYoLPw"
                     title="Benefits of Maca Coffee with Cinnamon for health | how to be a king"
@@ -40,7 +41,19 @@ const SoloShowCase = () => {
                     allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
                     referrerPolicy="strict-origin-when-cross-origin"
                     allowFullScreen
-                  ></iframe>
+                  ></iframe> */}
+
+                  <video
+                    className="w-full h-full object-cover"
+                    controls
+                    autoPlay
+                    muted
+                    loop
+                    playsInline
+                    src="/videos/videoGoogleVids.mp4"
+                  >
+                    আপনার ব্রাউজারটি ভিডিও ট্যাগ সমর্থন করে না।
+                  </video>
                 </div>
               </div>
             </div>

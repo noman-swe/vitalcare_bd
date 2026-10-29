@@ -128,12 +128,12 @@ const CustomerReviews = () => {
           {/* Scrollable Container */}
           <div
             ref={scrollContainerRef}
-            className="flex gap-6 overflow-x-auto overflow-y-hidden snap-x snap-mandatory py-2 px-1 [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden"
+            className="flex gap-6 overflow-x-auto overflow-y-hidden snap-x snap-mandatory py-2 px-1 scrollbar-none [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden"
           >
             {reviews.map((review) => (
               <div
                 key={review.id}
-                className="min-w-[280px] sm:min-w-[340px] md:min-w-[360px] flex-1 snap-start p-6 rounded-2xl bg-slate-50 dark:bg-brand-slate-card border border-slate-200 dark:border-brand-slate-border flex flex-col justify-between"
+                className="min-w-70 sm:min-w-85 md:min-w-90 flex-1 snap-start p-6 rounded-2xl bg-slate-50 dark:bg-brand-slate-card border border-slate-200 dark:border-brand-slate-border flex flex-col justify-between"
               >
                 <div>
                   {/* Star Rating */}
