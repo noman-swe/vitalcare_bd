@@ -4,14 +4,16 @@ import "./index.css";
 import App from "./App.jsx";
 import { ThemeProvider } from "./context/ThemeContext.jsx";
 import { CartProvider } from "./context/CartContext.jsx";
+// import { HelmetProvider } from "react-helmet-async";
 
 createRoot(document.getElementById("root")).render(
   <StrictMode>
     <ThemeProvider>
       <CartProvider>
-        <App />
+        {/* <HelmetProvider> */}
+          <App />
+        {/* </HelmetProvider> */}
       </CartProvider>
-      {/* <App /> */}
     </ThemeProvider>
   </StrictMode>,
 );
